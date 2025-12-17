@@ -1,36 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Share2, Instagram, ArrowRight, X, ChevronRight, ChevronLeft, Eye, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal, Bookmark } from "lucide-react";
+import { Upload, Share2, Instagram, X, Eye, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
 
 // Types
-type AppState = "IDLE" | "ANALYZING" | "READY" | "VIEWING";
+type AppState = "IDLE" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
-// Mock Data for the Wrapped Experience
-const WRAPPED_DATA = {
-  vibe: "The Curated Melancholic",
-  algorithmicPersona: "Instagram thinks you are a main character in a low-budget indie film about finding yourself in a big city. You constantly hover between 'productive aesthetic' and 'existential dread.'",
-  topThemes: [
-    { title: "Performative Wellness", description: "Green juices, 5AM routines, and journals that are too pretty to write in." },
-    { title: "Nostalgic Escapism", description: "Grainy film photos of places you've never been and eras you didn't live through." },
-    { title: "Validation Traps", description: "Quotes about 'letting go' and 'protecting your peace' that you share but don't practice." }
-  ],
-  emotionalLandscape: "You are hungry for transformation without the friction of change. The algorithm feeds you 'glow up' content because it detects a deep-seated desire to be someone else.",
-  missing: "Notably absent is anything messy, raw, or unpolished. You avoid content that shows the ugly process of doing things, preferring the shiny, edited final result.",
-  blindSpots: "You think you're curating a unique taste, but you're actually just aggregating micro-trends three weeks before they die. You save 'inspo' as a form of procrastination."
-};
+interface AnalysisResult {
+  vibe: string;
+  algorithmicPersona: string;
+  topThemes: Array<{ title: string; description: string }>;
+  emotionalLandscape: string;
+  missing: string;
+  blindSpots: string;
+}
 
 // --- Components ---
 
-const LandingView = ({ onUpload }: { onUpload: () => void }) => {
+const LandingView = ({ onUpload }: { onUpload: (files: File[]) => void }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: () => onUpload(),
+    onDrop: onUpload,
     accept: { 'image/*': [] },
-    maxFiles: 10
+    maxFiles: 10,
+    multiple: true
   });
 
   return (
@@ -96,36 +91,14 @@ const LandingView = ({ onUpload }: { onUpload: () => void }) => {
   );
 };
 
-const AnalyzingView = ({ onComplete }: { onComplete: () => void }) => {
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("Connecting to Instagram...");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(onComplete, 500);
-          return 100;
-        }
-        
-        if (prev === 20) setStatus("Analyzing visual patterns...");
-        if (prev === 50) setStatus("Deconstructing interests...");
-        if (prev === 80) setStatus("Generating persona...");
-        
-        return prev + 1;
-      });
-    }, 40);
-    return () => clearInterval(interval);
-  }, [onComplete]);
-
+const AnalyzingView = ({ status }: { status: string }) => {
   return (
     <motion.div 
       className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6"
     >
       <div className="w-full max-w-xs space-y-8 text-center">
         <div className="relative w-24 h-24 mx-auto">
-          <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
+          <svg className="w-full h-full rotate-[-90deg] animate-spin" viewBox="0 0 100 100">
             <circle
               className="text-zinc-800"
               strokeWidth="4"
@@ -135,7 +108,7 @@ const AnalyzingView = ({ onComplete }: { onComplete: () => void }) => {
               cx="50"
               cy="50"
             />
-            <motion.circle
+            <circle
               className="text-[#DD2A7B]"
               strokeWidth="4"
               strokeLinecap="round"
@@ -144,19 +117,18 @@ const AnalyzingView = ({ onComplete }: { onComplete: () => void }) => {
               r="46"
               cx="50"
               cy="50"
-              initial={{ strokeDasharray: "289 289", strokeDashoffset: 289 }}
-              animate={{ strokeDashoffset: 289 - (289 * progress) / 100 }}
-              transition={{ duration: 0.1 }}
+              strokeDasharray="289 289"
+              strokeDashoffset="72"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-semibold">{Math.round(progress)}%</span>
+            <Instagram className="w-8 h-8 text-white/80" />
           </div>
         </div>
 
         <div className="space-y-2">
           <h2 className="text-lg font-semibold">{status}</h2>
-          <p className="text-xs text-zinc-500">Please do not close this tab</p>
+          <p className="text-xs text-zinc-500">This may take a minute...</p>
         </div>
       </div>
     </motion.div>
@@ -198,10 +170,10 @@ const StoryHeader = ({ title, subtitle }: { title: string, subtitle?: string }) 
   </div>
 );
 
-const StoryView = ({ onRestart }: { onRestart: () => void }) => {
+const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 6;
-  const slideDuration = 8; // seconds
+  const slideDuration = 8;
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
@@ -215,25 +187,20 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
     <div className="fixed inset-0 z-50 bg-black flex flex-col md:items-center md:justify-center font-sans">
       <div className="relative w-full h-full md:max-w-[400px] md:h-[800px] md:rounded-[2rem] overflow-hidden bg-black md:border border-zinc-800 shadow-2xl">
         
-        {/* Persistent UI Elements */}
         <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={slideDuration} />
         <StoryHeader title="Explore Wrapped" subtitle="2024 Analysis" />
 
-        {/* Tap Areas */}
         <div className="absolute inset-0 z-30 flex">
           <div className="w-1/3 h-full" onClick={prevSlide} />
           <div className="w-2/3 h-full" onClick={nextSlide} />
         </div>
 
-        {/* Background */}
         <div className="absolute inset-0 z-0">
           <img src={bgTexture} alt="background" className="w-full h-full object-cover opacity-60 blur-2xl scale-110" />
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
-        {/* Slides */}
         <AnimatePresence mode="wait">
-          {/* SLIDE 1: INTRO */}
           {currentSlide === 0 && (
             <motion.div
               key="slide-0"
@@ -248,13 +215,10 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
               <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
                 Your Algorithmic<br/>Identity
               </h1>
-              <p className="text-lg text-white/80">
-                Analysis Complete.
-              </p>
+              <p className="text-lg text-white/80">Analysis Complete.</p>
             </motion.div>
           )}
 
-          {/* SLIDE 2: PERSONA */}
           {currentSlide === 1 && (
             <motion.div
               key="slide-1"
@@ -263,18 +227,13 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
             >
               <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-8 border border-white/10 text-center space-y-6">
                 <div className="text-sm font-bold uppercase tracking-widest text-white/60">The Persona</div>
-                <h2 className="text-3xl font-bold text-white leading-tight">
-                  {WRAPPED_DATA.vibe}
-                </h2>
+                <h2 className="text-3xl font-bold text-white leading-tight">{data.vibe}</h2>
                 <div className="h-px w-12 bg-white/20 mx-auto" />
-                <p className="text-lg leading-relaxed text-white/90 font-medium">
-                  "{WRAPPED_DATA.algorithmicPersona}"
-                </p>
+                <p className="text-lg leading-relaxed text-white/90 font-medium">"{data.algorithmicPersona}"</p>
               </div>
             </motion.div>
           )}
 
-          {/* SLIDE 3: TOP THEMES */}
           {currentSlide === 2 && (
             <motion.div
               key="slide-2"
@@ -283,7 +242,7 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
             >
               <h2 className="text-3xl font-bold text-white mb-8 px-2">Your Feed Patterns</h2>
               <div className="space-y-4">
-                {WRAPPED_DATA.topThemes.map((theme, i) => (
+                {data.topThemes.map((theme, i) => (
                   <div key={i} className="bg-white/10 backdrop-blur-md p-5 rounded-xl border border-white/5">
                     <h3 className="text-lg font-bold text-white mb-1">{theme.title}</h3>
                     <p className="text-sm text-white/80 leading-snug">{theme.description}</p>
@@ -293,7 +252,6 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
             </motion.div>
           )}
 
-          {/* SLIDE 4: DEEP DIVE */}
           {currentSlide === 3 && (
             <motion.div
               key="slide-3"
@@ -305,20 +263,19 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
                    <div className="flex items-center gap-2 mb-3 text-emerald-300 font-bold uppercase text-sm tracking-wide">
                      <Heart className="w-4 h-4 fill-emerald-300" /> What You Crave
                    </div>
-                   <p className="text-lg text-white font-medium">{WRAPPED_DATA.emotionalLandscape}</p>
+                   <p className="text-lg text-white font-medium">{data.emotionalLandscape}</p>
                 </div>
 
                 <div className="bg-red-900/40 backdrop-blur-xl p-6 rounded-2xl border border-red-500/20">
                    <div className="flex items-center gap-2 mb-3 text-red-300 font-bold uppercase text-sm tracking-wide">
                      <Ghost className="w-4 h-4" /> What You Avoid
                    </div>
-                   <p className="text-lg text-white font-medium">{WRAPPED_DATA.missing}</p>
+                   <p className="text-lg text-white font-medium">{data.missing}</p>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* SLIDE 5: BLIND SPOTS */}
           {currentSlide === 4 && (
             <motion.div
               key="slide-4"
@@ -330,9 +287,7 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
                   <span className="font-bold text-xl">Hard Truths</span>
                   <AlertTriangle className="w-6 h-6 text-black" />
                 </div>
-                <p className="text-xl font-medium leading-relaxed">
-                  {WRAPPED_DATA.blindSpots}
-                </p>
+                <p className="text-xl font-medium leading-relaxed">{data.blindSpots}</p>
                 <div className="mt-6 flex justify-center">
                    <div className="bg-black text-white px-4 py-2 rounded-full text-sm font-bold">
                      Swipe to deny &gt;
@@ -342,18 +297,13 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
             </motion.div>
           )}
 
-          {/* SLIDE 6: SUMMARY */}
           {currentSlide === 5 && (
             <motion.div
               key="slide-5"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10"
             >
-              <div 
-                id="share-card"
-                className="w-full aspect-[9/16] max-h-[600px] bg-gradient-to-br from-[#1a1a1a] to-black rounded-[2rem] border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl"
-              >
-                {/* Card Content */}
+              <div className="w-full aspect-[9/16] max-h-[600px] bg-gradient-to-br from-[#1a1a1a] to-black rounded-[2rem] border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl">
                 <div className="absolute top-0 right-0 p-32 bg-purple-500/20 blur-[80px] rounded-full pointer-events-none" />
                 <div className="absolute bottom-0 left-0 p-32 bg-orange-500/20 blur-[80px] rounded-full pointer-events-none" />
 
@@ -371,20 +321,18 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
                   </div>
 
                   <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
-                    {WRAPPED_DATA.vibe}
+                    {data.vibe}
                   </h2>
-                  <p className="text-white/80 text-sm leading-relaxed mb-6">
-                    "{WRAPPED_DATA.algorithmicPersona}"
-                  </p>
+                  <p className="text-white/80 text-sm leading-relaxed mb-6">"{data.algorithmicPersona}"</p>
 
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                       <div className="text-[10px] text-white/50 uppercase font-bold mb-1">Top Theme</div>
-                      <div className="text-white font-medium">Performative Wellness</div>
+                      <div className="text-white font-medium">{data.topThemes[0]?.title || "N/A"}</div>
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">Blind Spot</div>
-                      <div className="text-white font-medium">Saving as Procrastination</div>
+                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">What's Missing</div>
+                      <div className="text-white font-medium text-sm">{data.missing.split('.')[0]}</div>
                     </div>
                   </div>
                 </div>
@@ -413,22 +361,81 @@ const StoryView = ({ onRestart }: { onRestart: () => void }) => {
   );
 };
 
-
-// --- Main Page Component ---
-
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("IDLE");
+  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState("Uploading images...");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleUpload = useCallback(async (files: File[]) => {
+    if (files.length === 0) return;
+
+    setAppState("ANALYZING");
+    setAnalysisStatus("Uploading images...");
+
+    try {
+      const formData = new FormData();
+      files.forEach(file => formData.append('images', file));
+
+      setAnalysisStatus("Analyzing with AI...");
+      
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
+
+      const data = await response.json();
+      setAnalysisData(data);
+      setAppState("READY");
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      setError(err.message);
+      setAppState("ERROR");
+    }
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    setAppState("IDLE");
+    setAnalysisData(null);
+    setError(null);
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans overflow-hidden">
-      {/* Content Switcher */}
       <AnimatePresence mode="wait">
         {appState === "IDLE" && (
-          <LandingView key="idle" onUpload={() => setAppState("ANALYZING")} />
+          <LandingView key="idle" onUpload={handleUpload} />
         )}
         
         {appState === "ANALYZING" && (
-          <AnalyzingView key="analyzing" onComplete={() => setAppState("READY")} />
+          <AnalyzingView key="analyzing" status={analysisStatus} />
+        )}
+
+        {appState === "ERROR" && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center justify-center min-h-screen p-6 relative bg-black text-center"
+          >
+            <div className="w-full max-w-sm space-y-6">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
+              <h1 className="text-2xl font-bold">Analysis Failed</h1>
+              <p className="text-zinc-400">{error || "Something went wrong. Please try again."}</p>
+              <Button 
+                className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold"
+                onClick={handleRestart}
+              >
+                Try Again
+              </Button>
+            </div>
+          </motion.div>
         )}
 
         {appState === "READY" && (
@@ -447,9 +454,7 @@ export default function Home() {
                  </div>
               </div>
 
-              <h1 className="text-3xl font-bold">
-                Your Wrapped is Ready
-              </h1>
+              <h1 className="text-3xl font-bold">Your Wrapped is Ready</h1>
               
               <Button 
                 className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold transition-transform active:scale-95"
@@ -461,8 +466,8 @@ export default function Home() {
           </motion.div>
         )}
 
-        {appState === "VIEWING" && (
-          <StoryView key="viewing" onRestart={() => setAppState("IDLE")} />
+        {appState === "VIEWING" && analysisData && (
+          <StoryView key="viewing" data={analysisData} onRestart={handleRestart} />
         )}
       </AnimatePresence>
     </div>
