@@ -76,7 +76,7 @@ export async function registerRoutes(
 
       // Call OpenAI with vision model
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
