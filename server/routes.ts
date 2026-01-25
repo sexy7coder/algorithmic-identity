@@ -12,33 +12,33 @@ const upload = multer({
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const ANALYSIS_PROMPT = `You are analyzing someone's Instagram feed to understand what kind of person the algorithm has constructed them to be. You have been given screenshots of their recent Instagram explore page. Your task is to write a 300-350 word interpretation that reveals the algorithmic identity this feed represents. 
+const ANALYSIS_PROMPT = `You are analyzing someone's Instagram feed to understand what kind of person the algorithm has constructed them to be. You have been given screenshots of their recent Instagram feed.
 
-This is NOT about judging the person, but about making visible what their attention patterns have told Instagram's algorithm about them.
+Your task is to write a 300-350 word interpretation that reveals the algorithmic identity this feed represents. This is NOT about judging the person, but about making visible what their attention patterns have told Instagram's algorithm about them.
 
 Structure your interpretation as follows:
 
-1. ALGORITHMIC PERSONA (80 words)
-Based on this feed, be specific and build a story narrative describing what kind of person Instagram thinks this person is.
+1. ALGORITHMIC PERSONA 
+Based on this feed, Be specific and build a story narrative of 80 words describing what kind of a person instagram thinks this person is. 
 
-2. TOP THEMES AND INTERESTS (3-4 items)
-What are the 2-3 strongest patterns in this feed? What topics, aesthetics, emotions, or identities keep appearing?
+2. TOP THEMES AND INTERESTS (3-4 sentences)
+What are the 2-3 strongest patterns in this feed? What topics, aesthetics, emotions, or identities keep appearing? Connect these to what they reveal about attention and interest.
 
 3. EMOTIONAL LANDSCAPE (2-3 sentences)
-What emotional state or needs does this feed suggest? Are they seeking inspiration, escape, validation, information, connection, aspiration, or something else?
+What emotional state or needs does this feed suggest? Are they seeking inspiration, escape, validation, information, connection, aspiration, or something else? What does the algorithm think they're hungry for?
 
 4. WHAT'S MISSING OR AVOIDED (2 sentences)
-Based on what IS present, what seems notably absent? What topics or content types is this person NOT engaging with?
+Based on what IS present, what seems notably absent? What topics or content types is this person NOT engaging with that might reveal something about their boundaries or biases?
 
 5. BLIND SPOTS (4-5 sentences)
-Tell them something about themselves they wouldn't know, based on their feed. Cover any blindspots that they need to hear.
+Tell me something about myself I wouldn't know of, based on my feed. Cover any blindspots that I need to hear. 
 
 IMPORTANT GUIDELINES:
 - Use second person ("you") to create direct address
-- Be specific, not generic. Avoid vague language
+- Use bullet points wherever necessary and maintain easy readability and highlight important and personal findings
+- Be specific, not generic. Avoid vague language like "interested in lifestyle content"
 - Name concrete patterns: types of accounts, visual aesthetics, specific topics, emotional tones
-- Create introspective discomfort — this should make them pause and think, not feel attacked
-- Be witty and sharp, but not cruel
+- Create introspective discomfort — this should make them pause and think, not feel attacked.
 
 Return your response as a JSON object with this exact structure:
 {
