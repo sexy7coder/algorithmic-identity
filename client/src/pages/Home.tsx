@@ -1,174 +1,26 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Instagram, X, Heart, AlertTriangle, ShieldAlert, Trash2 } from "lucide-react";
+import { Upload, Share2, Instagram, X, Eye, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
 
 // Types
 type AppState = "IDLE" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
 interface AnalysisResult {
   vibe: string;
-  introduction: string;
   algorithmicPersona: string;
   topThemes: Array<{ title: string; description: string }>;
   emotionalLandscape: string;
   missing: string;
   blindSpots: string;
-  closing: string;
 }
-
-const LOADING_MESSAGES = [
-  "Synchronizing with neural networks...",
-  "Parsing attention heatmaps...",
-  "Aggregating aesthetic clusters...",
-  "Calculating emotional resonance...",
-  "Indexing digital blind spots...",
-  "Synthesizing algorithmic persona...",
-  "Finalizing your identity audit..."
-];
 
 // --- Components ---
 
-const ChatView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () => void }) => {
-  const [visibleMessages, setVisibleMessages] = useState<number>(0);
-  const scrollRef = useCallback((node: HTMLDivElement) => {
-    if (node !== null) {
-      node.scrollIntoView({ behavior: "smooth" });
-    }
-  }, []);
-
-  const messages = [
-    { type: "bot", content: data.introduction },
-    { type: "bot", content: `I've analyzed your patterns. You are: **${data.vibe}**` },
-    { type: "bot", content: data.algorithmicPersona },
-    { 
-      type: "bot", 
-      content: "Here are the core pillars of your digital attention:",
-      subContent: (
-        <div className="grid gap-3 mt-4 w-full">
-          {data.topThemes.map((theme, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * i }}
-              className="bg-white/5 border border-white/10 rounded-2xl p-4"
-            >
-              <h4 className="font-black text-xs uppercase tracking-widest text-[#DD2A7B] mb-1">{theme.title}</h4>
-              <p className="text-sm text-zinc-300 leading-relaxed">{theme.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      )
-    },
-    { type: "bot", label: "Emotional Landscape", content: data.emotionalLandscape },
-    { type: "bot", label: "The Void", content: `I've noticed a distinct lack of engagement with certain areas: ${data.missing}` },
-    { 
-      type: "bot", 
-      label: "The Hard Truth", 
-      content: data.blindSpots,
-      className: "bg-white text-black border-none"
-    },
-    { type: "bot", content: data.closing }
-  ];
-
-  useEffect(() => {
-    if (visibleMessages < messages.length) {
-      const timer = setTimeout(() => {
-        setVisibleMessages(v => v + 1);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [visibleMessages, messages.length]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col h-screen w-full bg-black font-sans overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-900 bg-black/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
-            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-              <Instagram className="w-5 h-5 text-white" />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-sm font-black tracking-tight text-white leading-none">Algorithm Audit</h2>
-            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Live Connection</p>
-          </div>
-        </div>
-        <button 
-          onClick={onRestart}
-          className="p-2 hover:bg-zinc-800 rounded-full transition-colors"
-        >
-          <X className="w-6 h-6 text-zinc-400" />
-        </button>
-      </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide pb-24">
-        <AnimatePresence>
-          {messages.slice(0, visibleMessages).map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className={`flex flex-col ${msg.type === "bot" ? "items-start" : "items-end"} max-w-[90%]`}
-              ref={i === visibleMessages - 1 ? scrollRef : null}
-            >
-              {msg.label && (
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 ml-4">
-                  {msg.label}
-                </span>
-              )}
-              <div className={`
-                p-5 rounded-[2rem] text-sm font-medium leading-relaxed shadow-lg w-full
-                ${msg.className || "bg-zinc-900 text-white border border-zinc-800"}
-                ${msg.type === "bot" ? "rounded-bl-none" : "rounded-br-none bg-[#DD2A7B]"}
-              `}>
-                {msg.content.split('**').map((part, index) => 
-                  index % 2 === 1 ? <strong key={index} className="text-[#DD2A7B]">{part}</strong> : part
-                )}
-                {msg.subContent}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {visibleMessages < messages.length && (
-          <div className="flex items-center gap-2 px-4 py-2">
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full animate-bounce" />
-              <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full animate-bounce [animation-delay:0.2s]" />
-              <span className="w-1.5 h-1.5 bg-zinc-700 rounded-full animate-bounce [animation-delay:0.4s]" />
-            </div>
-          </div>
-        )}
-
-        {visibleMessages === messages.length && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col gap-3 pt-4"
-          >
-            <Button 
-              className="w-full h-14 bg-white text-black hover:bg-zinc-200 rounded-2xl font-black italic shadow-xl"
-              onClick={onRestart}
-            >
-              RESTART AUDIT
-            </Button>
-            <p className="text-[10px] text-center text-zinc-600 font-bold uppercase tracking-widest">
-              explorewrapped.ai • 2024 identity report
-            </p>
-          </motion.div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const LandingView = ({ onUpload, files, onRemove }: { onUpload: (files: File[]) => void, files: File[], onRemove: (index: number) => void }) => {
+const LandingView = ({ onUpload }: { onUpload: (files: File[]) => void }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onUpload,
     accept: { 'image/*': [] },
@@ -181,245 +33,352 @@ const LandingView = ({ onUpload, files, onRemove }: { onUpload: (files: File[]) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10 relative bg-black selection:bg-[#DD2A7B]/30"
+      className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10 relative bg-black"
     >
       <div className="w-full max-w-md space-y-12">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8 }}
           className="flex flex-col items-center gap-6"
         >
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1 shadow-2xl">
-              <div className="w-full h-full bg-black rounded-[2.3rem] flex items-center justify-center border-4 border-black">
-                <Instagram className="w-12 h-12 text-white" />
-              </div>
+          <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1 shadow-2xl">
+            <div className="w-full h-full bg-black rounded-[2.3rem] flex items-center justify-center border-4 border-black">
+              <Instagram className="w-12 h-12 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]">
+          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]">
             Explore Wrapped
           </h1>
         </motion.div>
 
         <div className="space-y-4">
-          <p className="text-xl font-medium text-white/90 leading-relaxed">
+          <p className="text-xl font-medium text-white/90">
             Discover your algorithmic identity.
           </p>
-          <p className="text-sm text-zinc-500 max-w-xs mx-auto leading-relaxed">
+          <p className="text-sm text-zinc-500 max-w-xs mx-auto">
             Upload screenshots of your explore page to reveal what the algorithm really thinks of you.
           </p>
         </div>
 
-        <div className="space-y-6">
-          <div 
-            {...getRootProps()} 
-            className={`
-              relative w-full aspect-square md:aspect-video md:h-64 rounded-2xl border-2 border-dashed transition-all duration-500
-              flex flex-col items-center justify-center cursor-pointer overflow-hidden
-              ${isDragActive 
-                ? "border-[#DD2A7B] bg-[#DD2A7B]/5 scale-[1.02] shadow-[0_0_40px_rgba(221,42,123,0.15)]" 
-                : "border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-zinc-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.02)]"
-              }
-            `}
-          >
-            <input {...getInputProps()} />
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={isDragActive ? "active" : "idle"}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="flex flex-col items-center space-y-4 px-6"
-              >
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${isDragActive ? 'bg-[#DD2A7B] text-white' : 'bg-zinc-800 text-zinc-400'}`}>
-                  <Upload className="w-8 h-8" strokeWidth={1.5} />
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-base font-semibold text-white">
-                    {isDragActive ? "Drop them here!" : "Upload Screenshots"}
-                  </p>
-                  <p className="text-xs text-zinc-500">Up to 10 images (JPG, PNG)</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+        <div 
+          {...getRootProps()} 
+          className={`
+            w-full aspect-square rounded-xl border border-zinc-800 bg-zinc-900/50
+            flex flex-col items-center justify-center cursor-pointer transition-all duration-300
+            hover:bg-zinc-900 hover:border-zinc-700
+            ${isDragActive ? "border-[#DD2A7B] bg-zinc-900" : ""}
+          `}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
+              <Upload className="w-8 h-8 text-white" strokeWidth={1.5} />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-base font-semibold text-white">Upload Screenshots</p>
+              <p className="text-xs text-zinc-500">JPG, PNG supported</p>
+            </div>
           </div>
-
-          <AnimatePresence>
-            {files.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="space-y-4"
-              >
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                    Selected Images ({files.length}/10)
-                  </span>
-                  <button 
-                    onClick={() => files.forEach((_, i) => onRemove(0))}
-                    className="text-xs font-bold text-[#DD2A7B] hover:opacity-80 transition-opacity"
-                  >
-                    Clear All
-                  </button>
-                </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {files.map((file, idx) => (
-                    <motion.div 
-                      key={`${file.name}-${idx}`}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="group relative aspect-square rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700"
-                    >
-                      <img 
-                        src={URL.createObjectURL(file)} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" 
-                      />
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemove(idx);
-                        }}
-                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                      >
-                        <Trash2 className="w-4 h-4 text-white" />
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const event = new CustomEvent('start-analysis');
-                    window.dispatchEvent(event);
-                  }}
-                  className="w-full h-14 text-lg rounded-xl bg-white text-black hover:bg-zinc-200 font-bold transition-all active:scale-[0.98] shadow-xl"
-                >
-                  Analyze My Identity
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 font-medium">
           <ShieldAlert className="w-3 h-3" />
-          <span>Private & Secure On-Device Analysis</span>
+          <span>Private & Secure Analysis</span>
         </div>
       </div>
     </motion.div>
   );
 };
 
-const AnalyzingView = () => {
-  const [messageIndex, setMessageIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const messageInterval = setInterval(() => {
-      setMessageIndex(prev => (prev + 1) % LOADING_MESSAGES.length);
-    }, 3000);
-
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) return prev;
-        return prev + Math.random() * 5;
-      });
-    }, 2000);
-
-    return () => {
-      clearInterval(messageInterval);
-      clearInterval(progressInterval);
-    };
-  }, []);
-
+const AnalyzingView = ({ status }: { status: string }) => {
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 overflow-hidden"
+      className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6"
     >
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#DD2A7B]/10 blur-[120px] rounded-full animate-pulse" />
-      </div>
-
-      <div className="w-full max-w-xs space-y-12 text-center relative z-10">
-        <div className="relative w-32 h-32 mx-auto">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#DD2A7B] border-r-[#F58529]"
-          />
-          <motion.div 
-            animate={{ rotate: -360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-2 rounded-full border-4 border-transparent border-t-[#8134AF] border-l-[#DD2A7B] opacity-50"
-          />
+      <div className="w-full max-w-xs space-y-8 text-center">
+        <div className="relative w-24 h-24 mx-auto">
+          <svg className="w-full h-full rotate-[-90deg] animate-spin" viewBox="0 0 100 100">
+            <circle
+              className="text-zinc-800"
+              strokeWidth="4"
+              stroke="currentColor"
+              fill="transparent"
+              r="46"
+              cx="50"
+              cy="50"
+            />
+            <circle
+              className="text-[#DD2A7B]"
+              strokeWidth="4"
+              strokeLinecap="round"
+              stroke="currentColor"
+              fill="transparent"
+              r="46"
+              cx="50"
+              cy="50"
+              strokeDasharray="289 289"
+              strokeDashoffset="72"
+            />
+          </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <Instagram className="w-10 h-10 text-white animate-pulse" />
+            <Instagram className="w-8 h-8 text-white/80" />
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <AnimatePresence mode="wait">
-              <motion.h2 
-                key={messageIndex}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-xl font-bold tracking-tight h-8"
-              >
-                {LOADING_MESSAGES[messageIndex]}
-              </motion.h2>
-            </AnimatePresence>
-            <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">
-              Est. time remaining: {Math.max(5, Math.ceil((100 - progress) / 2))}s
-            </p>
-          </div>
-
-          <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]"
-              initial={{ width: "0%" }}
-              animate={{ width: `${progress}%` }}
-              transition={{ ease: "easeOut", duration: 0.5 }}
-            />
-          </div>
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold">{status}</h2>
+          <p className="text-xs text-zinc-500">This may take a minute...</p>
         </div>
       </div>
     </motion.div>
+  );
+};
+
+const StoryProgressBar = ({ count, activeIndex, duration }: { count: number, activeIndex: number, duration: number }) => (
+  <div className="absolute top-4 left-2 right-2 z-50 flex gap-1.5 h-0.5">
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="flex-1 bg-white/30 rounded-full overflow-hidden h-full">
+        <motion.div 
+          className="h-full bg-white"
+          initial={{ width: i < activeIndex ? "100%" : "0%" }}
+          animate={{ width: i < activeIndex ? "100%" : i === activeIndex ? "100%" : "0%" }}
+          transition={{ duration: i === activeIndex ? duration : 0, ease: "linear" }}
+        />
+      </div>
+    ))}
+  </div>
+);
+
+const StoryHeader = ({ title, subtitle }: { title: string, subtitle?: string }) => (
+  <div className="absolute top-8 left-4 right-4 z-40 flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+        <div className="w-full h-full rounded-full bg-black border-2 border-black overflow-hidden">
+           <Instagram className="w-full h-full p-1 text-white" />
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-sm font-semibold text-white shadow-black drop-shadow-md">Explore Wrapped</span>
+        {subtitle && <span className="text-xs text-white/80 shadow-black drop-shadow-md">{subtitle}</span>}
+      </div>
+    </div>
+    <div className="flex gap-4 text-white">
+      <MoreHorizontal className="w-6 h-6 drop-shadow-md" />
+      <X className="w-6 h-6 drop-shadow-md" />
+    </div>
+  </div>
+);
+
+const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () => void }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const totalSlides = 6;
+  const slideDuration = 8;
+
+  const nextSlide = () => {
+    if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) setCurrentSlide(c => c - 1);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col md:items-center md:justify-center font-sans">
+      <div className="relative w-full h-full md:max-w-[400px] md:h-[800px] md:rounded-[2rem] overflow-hidden bg-black md:border border-zinc-800 shadow-2xl">
+        
+        <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={slideDuration} />
+        <StoryHeader title="Explore Wrapped" subtitle="2024 Analysis" />
+
+        <div className="absolute inset-0 z-30 flex">
+          <div className="w-1/3 h-full" onClick={prevSlide} />
+          <div className="w-2/3 h-full" onClick={nextSlide} />
+        </div>
+
+        <div className="absolute inset-0 z-0">
+          <img src={bgTexture} alt="background" className="w-full h-full object-cover opacity-60 blur-2xl scale-110" />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+
+        <AnimatePresence mode="wait">
+          {currentSlide === 0 && (
+            <motion.div
+              key="slide-0"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10"
+            >
+              <div className="mb-8 relative">
+                <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center animate-pulse">
+                   <Instagram className="w-12 h-12 text-white" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
+                Your Algorithmic<br/>Identity
+              </h1>
+              <p className="text-lg text-white/80">Analysis Complete.</p>
+            </motion.div>
+          )}
+
+          {currentSlide === 1 && (
+            <motion.div
+              key="slide-1"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col justify-center p-8 z-10"
+            >
+              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-8 border border-white/10 text-center space-y-6">
+                <div className="text-sm font-bold uppercase tracking-widest text-white/60">The Persona</div>
+                <h2 className="text-3xl font-bold text-white leading-tight">{data.vibe}</h2>
+                <div className="h-px w-12 bg-white/20 mx-auto" />
+                <p className="text-lg leading-relaxed text-white/90 font-medium">"{data.algorithmicPersona}"</p>
+              </div>
+            </motion.div>
+          )}
+
+          {currentSlide === 2 && (
+            <motion.div
+              key="slide-2"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
+            >
+              <h2 className="text-3xl font-bold text-white mb-8 px-2">Your Feed Patterns</h2>
+              <div className="space-y-4">
+                {data.topThemes.map((theme, i) => (
+                  <div key={i} className="bg-white/10 backdrop-blur-md p-5 rounded-xl border border-white/5">
+                    <h3 className="text-lg font-bold text-white mb-1">{theme.title}</h3>
+                    <p className="text-sm text-white/80 leading-snug">{theme.description}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {currentSlide === 3 && (
+            <motion.div
+              key="slide-3"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col justify-center p-8 z-10"
+            >
+              <div className="space-y-8">
+                <div className="bg-emerald-900/40 backdrop-blur-xl p-6 rounded-2xl border border-emerald-500/20">
+                   <div className="flex items-center gap-2 mb-3 text-emerald-300 font-bold uppercase text-sm tracking-wide">
+                     <Heart className="w-4 h-4 fill-emerald-300" /> What You Crave
+                   </div>
+                   <p className="text-lg text-white font-medium">{data.emotionalLandscape}</p>
+                </div>
+
+                <div className="bg-red-900/40 backdrop-blur-xl p-6 rounded-2xl border border-red-500/20">
+                   <div className="flex items-center gap-2 mb-3 text-red-300 font-bold uppercase text-sm tracking-wide">
+                     <Ghost className="w-4 h-4" /> What You Avoid
+                   </div>
+                   <p className="text-lg text-white font-medium">{data.missing}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {currentSlide === 4 && (
+            <motion.div
+              key="slide-4"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10 text-center"
+            >
+              <div className="w-full bg-white text-black p-8 rounded-2xl shadow-xl transform rotate-1">
+                <div className="flex justify-between items-center mb-6 border-b border-black/10 pb-4">
+                  <span className="font-bold text-xl">Hard Truths</span>
+                  <AlertTriangle className="w-6 h-6 text-black" />
+                </div>
+                <p className="text-xl font-medium leading-relaxed">{data.blindSpots}</p>
+                <div className="mt-6 flex justify-center">
+                   <div className="bg-black text-white px-4 py-2 rounded-full text-sm font-bold">
+                     Swipe to deny &gt;
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {currentSlide === 5 && (
+            <motion.div
+              key="slide-5"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10"
+            >
+              <div className="w-full aspect-[9/16] max-h-[600px] bg-gradient-to-br from-[#1a1a1a] to-black rounded-[2rem] border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 p-32 bg-purple-500/20 blur-[80px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 p-32 bg-orange-500/20 blur-[80px] rounded-full pointer-events-none" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+                       <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
+                         <Instagram className="w-6 h-6 text-white" />
+                       </div>
+                    </div>
+                    <div>
+                      <div className="font-bold text-white text-lg">My Algorithmic Self</div>
+                      <div className="text-white/60 text-xs uppercase tracking-wider">2024 Analysis</div>
+                    </div>
+                  </div>
+
+                  <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
+                    {data.vibe}
+                  </h2>
+                  <p className="text-white/80 text-sm leading-relaxed mb-6">"{data.algorithmicPersona}"</p>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">Top Theme</div>
+                      <div className="text-white font-medium">{data.topThemes[0]?.title || "N/A"}</div>
+                    </div>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">What's Missing</div>
+                      <div className="text-white font-medium text-sm">{data.missing.split('.')[0]}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="relative z-10 pt-6 border-t border-white/10 flex justify-between items-end">
+                   <div className="text-xs font-mono text-white/40">explorewrapped.ai</div>
+                   <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                     <span className="text-black text-xs font-bold">QR</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3 w-full max-w-[300px]">
+                <Button className="flex-1 bg-white text-black hover:bg-gray-100 rounded-xl font-semibold h-12" onClick={onRestart}>
+                  Restart
+                </Button>
+                <Button className="flex-1 bg-[#0095f6] text-white hover:bg-[#0095f6]/90 rounded-xl font-semibold h-12">
+                  Share Story
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("IDLE");
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState("Uploading images...");
   const [error, setError] = useState<string | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
 
-  const handleUpload = useCallback((newFiles: File[]) => {
-    setFiles(prev => [...prev, ...newFiles].slice(0, 10));
-  }, []);
-
-  const removeFile = useCallback((index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const runAnalysis = useCallback(async () => {
+  const handleUpload = useCallback(async (files: File[]) => {
     if (files.length === 0) return;
 
     setAppState("ANALYZING");
+    setAnalysisStatus("Uploading images...");
 
     try {
       const formData = new FormData();
       files.forEach(file => formData.append('images', file));
 
+      setAnalysisStatus("Analyzing with AI...");
+      
       const response = await fetch('/api/analyze', {
         method: 'POST',
         body: formData
@@ -438,59 +397,42 @@ export default function Home() {
       setError(err.message);
       setAppState("ERROR");
     }
-  }, [files]);
-
-  useEffect(() => {
-    const handleStartAnalysis = () => runAnalysis();
-    window.addEventListener('start-analysis', handleStartAnalysis);
-    return () => window.removeEventListener('start-analysis', handleStartAnalysis);
-  }, [runAnalysis]);
+  }, []);
 
   const handleRestart = useCallback(() => {
     setAppState("IDLE");
     setAnalysisData(null);
     setError(null);
-    setFiles([]);
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-black text-white font-sans overflow-hidden antialiased">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-900/10 blur-[120px] rounded-full" />
-      </div>
-
+    <div className="min-h-screen w-full bg-black text-white font-sans overflow-hidden">
       <AnimatePresence mode="wait">
         {appState === "IDLE" && (
-          <LandingView key="idle" onUpload={handleUpload} files={files} onRemove={removeFile} />
+          <LandingView key="idle" onUpload={handleUpload} />
         )}
         
         {appState === "ANALYZING" && (
-          <AnalyzingView key="analyzing" />
+          <AnalyzingView key="analyzing" status={analysisStatus} />
         )}
 
         {appState === "ERROR" && (
           <motion.div
             key="error"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center min-h-screen p-6 relative bg-black text-center"
           >
-            <div className="w-full max-w-sm space-y-8">
-              <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-red-500/20">
-                <AlertTriangle className="w-10 h-10 text-red-500" />
-              </div>
-              <div className="space-y-3">
-                <h1 className="text-3xl font-black italic tracking-tight">ANALYSIS HALTED.</h1>
-                <p className="text-zinc-500 font-medium leading-relaxed">{error || "The algorithm refused to cooperate. Please try again."}</p>
-              </div>
+            <div className="w-full max-w-sm space-y-6">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
+              <h1 className="text-2xl font-bold">Analysis Failed</h1>
+              <p className="text-zinc-400">{error || "Something went wrong. Please try again."}</p>
               <Button 
-                className="w-full h-16 text-xl rounded-2xl bg-white text-black hover:bg-zinc-200 font-black italic shadow-2xl"
+                className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold"
                 onClick={handleRestart}
               >
-                REBOOT ANALYSIS
+                Try Again
               </Button>
             </div>
           </motion.div>
@@ -504,36 +446,28 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center min-h-screen p-6 relative bg-black"
           >
-            <div className="w-full max-w-sm text-center space-y-12">
-              <div className="relative w-40 h-40 mx-auto">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] animate-spin-slow blur-2xl opacity-40" />
-                 <div className="relative w-full h-full bg-zinc-950 rounded-[2.5rem] flex items-center justify-center border border-white/10 shadow-2xl overflow-hidden">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Instagram className="w-20 h-20 text-white" />
-                    </motion.div>
+            <div className="w-full max-w-sm text-center space-y-8">
+              <div className="relative w-32 h-32 mx-auto">
+                 <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full animate-spin-slow blur-xl opacity-50" />
+                 <div className="relative w-full h-full bg-zinc-900 rounded-full flex items-center justify-center border border-white/10">
+                    <Instagram className="w-16 h-16 text-white" />
                  </div>
               </div>
 
-              <div className="space-y-4">
-                <h1 className="text-4xl font-black italic leading-none tracking-tight">IDENTITY READY.</h1>
-                <p className="text-zinc-500 font-medium uppercase tracking-[0.2em] text-xs">Analysis synchronized with profile</p>
-              </div>
+              <h1 className="text-3xl font-bold">Your Wrapped is Ready</h1>
               
               <Button 
-                className="w-full h-18 text-2xl rounded-2xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white hover:scale-[1.02] transition-all font-black italic shadow-xl"
+                className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold transition-transform active:scale-95"
                 onClick={() => setAppState("VIEWING")}
               >
-                OPEN WRAPPED
+                Open Wrapped
               </Button>
             </div>
           </motion.div>
         )}
 
         {appState === "VIEWING" && analysisData && (
-          <ChatView key="viewing" data={analysisData} onRestart={handleRestart} />
+          <StoryView key="viewing" data={analysisData} onRestart={handleRestart} />
         )}
       </AnimatePresence>
     </div>
