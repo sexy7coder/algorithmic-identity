@@ -1,13 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Share2, Instagram, X, Eye, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal } from "lucide-react";
+import { Upload, Share2, Instagram, X, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal, Sparkles, Download, RotateCcw, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
 
-// Types
-type AppState = "IDLE" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
+type AppState = "IDLE" | "PREVIEWING" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
 interface AnalysisResult {
   vibe: string;
@@ -18,14 +16,213 @@ interface AnalysisResult {
   blindSpots: string;
 }
 
-// --- Components ---
+interface PreviewFile {
+  file: File;
+  preview: string;
+}
 
-const LandingView = ({ onUpload }: { onUpload: (files: File[]) => void }) => {
+const LOADING_MESSAGES = [
+  "Reading your attention patterns...",
+  "Detecting visual themes...",
+  "Finding your vibe...",
+  "Analyzing content preferences...",
+  "Decoding the algorithm...",
+  "Mapping your digital persona...",
+  "Uncovering hidden patterns...",
+  "Building your profile..."
+];
+
+const FloatingOrb = ({ delay = 0, size = "lg" }: { delay?: number; size?: "sm" | "md" | "lg" }) => {
+  const sizeClasses = {
+    sm: "w-32 h-32",
+    md: "w-48 h-48",
+    lg: "w-64 h-64"
+  };
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ 
+        opacity: [0.1, 0.3, 0.1],
+        scale: [0.8, 1.1, 0.8],
+        x: [0, 30, 0],
+        y: [0, -20, 0]
+      }}
+      transition={{ 
+        duration: 8, 
+        repeat: Infinity, 
+        delay,
+        ease: "easeInOut"
+      }}
+      className={`absolute ${sizeClasses[size]} rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 blur-3xl pointer-events-none`}
+    />
+  );
+};
+
+const LandingView = ({ onFilesSelected }: { onFilesSelected: (files: PreviewFile[]) => void }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: onUpload,
+    onDrop: (acceptedFiles) => {
+      const previews = acceptedFiles.map(file => ({
+        file,
+        preview: URL.createObjectURL(file)
+      }));
+      onFilesSelected(previews);
+    },
     accept: { 'image/*': [] },
     maxFiles: 10,
-    multiple: true
+    multiple: true,
+    onDragEnter: () => setIsDragging(true),
+    onDragLeave: () => setIsDragging(false)
+  });
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center min-h-screen p-6 text-center relative overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+      <FloatingOrb delay={0} size="lg" />
+      <FloatingOrb delay={2} size="md" />
+      <FloatingOrb delay={4} size="sm" />
+      
+      <div className="w-full max-w-md space-y-10 relative z-10">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center gap-5"
+        >
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 3 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-[2.5rem] blur-xl opacity-60 animate-pulse" />
+            <div className="relative w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[3px] shadow-2xl shadow-pink-500/30">
+              <div className="w-full h-full bg-black rounded-[2.3rem] flex items-center justify-center">
+                <Instagram className="w-12 h-12 text-white" />
+              </div>
+            </div>
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]"
+          >
+            Explore Wrapped
+          </motion.h1>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="space-y-3"
+        >
+          <p className="text-xl font-medium text-white/90">
+            Discover your algorithmic identity
+          </p>
+          <p className="text-sm text-zinc-400 max-w-xs mx-auto leading-relaxed">
+            Upload screenshots of your explore page to reveal what the algorithm really thinks of you.
+          </p>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          <div 
+            {...getRootProps()} 
+            className={`
+              w-full aspect-[4/3] rounded-3xl border-2 border-dashed
+              flex flex-col items-center justify-center cursor-pointer transition-all duration-500
+              backdrop-blur-sm relative overflow-hidden group
+              ${isDragActive || isDragging 
+                ? "border-[#DD2A7B] bg-[#DD2A7B]/10 scale-[1.02]" 
+                : "border-zinc-700/50 bg-zinc-900/30 hover:border-zinc-600 hover:bg-zinc-900/50"
+              }
+            `}
+          >
+            <input {...getInputProps()} data-testid="input-file-upload" />
+          
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <motion.div 
+            animate={isDragActive ? { scale: 1.1, y: -5 } : { scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="flex flex-col items-center space-y-5 relative z-10"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              className={`
+                w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300
+                ${isDragActive 
+                  ? "bg-gradient-to-br from-[#f09433] to-[#dc2743] shadow-lg shadow-pink-500/30" 
+                  : "bg-zinc-800/80 group-hover:bg-zinc-700/80"
+                }
+              `}
+            >
+              <Upload className={`w-9 h-9 transition-colors duration-300 ${isDragActive ? "text-white" : "text-zinc-300"}`} strokeWidth={1.5} />
+            </motion.div>
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-white">
+                {isDragActive ? "Drop your screenshots" : "Upload Screenshots"}
+              </p>
+              <p className="text-sm text-zinc-500">Drag & drop or tap to browse</p>
+              <p className="text-xs text-zinc-600">JPG, PNG • Up to 10 images</p>
+            </div>
+          </motion.div>
+        </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+          className="flex items-center justify-center gap-2 text-xs text-zinc-500"
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span className="font-medium">Private & Secure • Images aren't stored</span>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+const PreviewView = ({ 
+  files, 
+  onRemove, 
+  onAddMore, 
+  onAnalyze, 
+  onCancel 
+}: { 
+  files: PreviewFile[]; 
+  onRemove: (index: number) => void;
+  onAddMore: (newFiles: PreviewFile[]) => void;
+  onAnalyze: () => void;
+  onCancel: () => void;
+}) => {
+  const { getRootProps, getInputProps, open } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      const previews = acceptedFiles.map(file => ({
+        file,
+        preview: URL.createObjectURL(file)
+      }));
+      onAddMore(previews);
+    },
+    accept: { 'image/*': [] },
+    maxFiles: 10 - files.length,
+    multiple: true,
+    noClick: true,
+    noKeyboard: true
   });
 
   return (
@@ -33,144 +230,262 @@ const LandingView = ({ onUpload }: { onUpload: (files: File[]) => void }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-screen p-6 text-center z-10 relative bg-black"
+      className="flex flex-col min-h-screen p-6 relative"
     >
-      <div className="w-full max-w-md space-y-12">
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="flex flex-col items-center gap-6"
-        >
-          <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1 shadow-2xl">
-            <div className="w-full h-full bg-black rounded-[2.3rem] flex items-center justify-center border-4 border-black">
-              <Instagram className="w-12 h-12 text-white" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]">
-            Explore Wrapped
-          </h1>
-        </motion.div>
-
-        <div className="space-y-4">
-          <p className="text-xl font-medium text-white/90">
-            Discover your algorithmic identity.
-          </p>
-          <p className="text-sm text-zinc-500 max-w-xs mx-auto">
-            Upload screenshots of your explore page to reveal what the algorithm really thinks of you.
-          </p>
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+      
+      <div className="relative z-10 flex-1 flex flex-col max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between mb-6">
+          <button 
+            onClick={onCancel}
+            className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+            data-testid="button-cancel-preview"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <h2 className="text-lg font-semibold text-white">Review Screenshots</h2>
+          <div className="w-10" />
         </div>
 
-        <div 
-          {...getRootProps()} 
-          className={`
-            w-full aspect-square rounded-xl border border-zinc-800 bg-zinc-900/50
-            flex flex-col items-center justify-center cursor-pointer transition-all duration-300
-            hover:bg-zinc-900 hover:border-zinc-700
-            ${isDragActive ? "border-[#DD2A7B] bg-zinc-900" : ""}
-          `}
-        >
+        <div {...getRootProps()} className="flex-1">
           <input {...getInputProps()} />
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-white" strokeWidth={1.5} />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="text-base font-semibold text-white">Upload Screenshots</p>
-              <p className="text-xs text-zinc-500">JPG, PNG supported</p>
-            </div>
+          
+          <div className="grid grid-cols-3 gap-3">
+            {files.map((file, index) => (
+              <motion.div
+                key={file.preview}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: index * 0.05 }}
+                className="relative aspect-[9/16] rounded-xl overflow-hidden group"
+              >
+                <img 
+                  src={file.preview} 
+                  alt={`Screenshot ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  whileHover={{ scale: 1.1 }}
+                  onClick={() => onRemove(index)}
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+                  data-testid={`button-remove-image-${index}`}
+                >
+                  <Trash2 className="w-4 h-4 text-white" />
+                </motion.button>
+              </motion.div>
+            ))}
+            
+            {files.length < 10 && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={open}
+                className="aspect-[9/16] rounded-xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/30 hover:bg-zinc-900/50 flex flex-col items-center justify-center gap-2 transition-all"
+                data-testid="button-add-more-images"
+              >
+                <ImageIcon className="w-6 h-6 text-zinc-500" />
+                <span className="text-xs text-zinc-500">Add more</span>
+              </motion.button>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-zinc-600 font-medium">
-          <ShieldAlert className="w-3 h-3" />
-          <span>Private & Secure Analysis</span>
+        <div className="mt-6 space-y-3">
+          <p className="text-center text-sm text-zinc-500">
+            {files.length} screenshot{files.length !== 1 ? 's' : ''} selected
+          </p>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              onClick={onAnalyze}
+              className="w-full py-6 text-lg rounded-2xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-90 font-semibold shadow-lg shadow-pink-500/20 transition-all"
+              data-testid="button-analyze"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Analyze My Feed
+            </Button>
+          </motion.div>
         </div>
       </div>
     </motion.div>
   );
 };
 
-const AnalyzingView = ({ status }: { status: string }) => {
+const AnalyzingView = ({ imageCount }: { imageCount: number }) => {
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const estimatedTime = Math.max(30, imageCount * 8);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const messageInterval = setInterval(() => {
+      setMessageIndex(prev => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2500);
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + (100 / estimatedTime), 95));
+      setElapsed(prev => prev + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(messageInterval);
+      clearInterval(progressInterval);
+    };
+  }, [estimatedTime]);
+
+  const remainingTime = Math.max(0, estimatedTime - elapsed);
+
   return (
     <motion.div 
-      className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col items-center justify-center min-h-screen p-6 relative"
     >
-      <div className="w-full max-w-xs space-y-8 text-center">
-        <div className="relative w-24 h-24 mx-auto">
-          <svg className="w-full h-full rotate-[-90deg] animate-spin" viewBox="0 0 100 100">
-            <circle
-              className="text-zinc-800"
-              strokeWidth="4"
-              stroke="currentColor"
-              fill="transparent"
-              r="46"
-              cx="50"
-              cy="50"
-            />
-            <circle
-              className="text-[#DD2A7B]"
-              strokeWidth="4"
-              strokeLinecap="round"
-              stroke="currentColor"
-              fill="transparent"
-              r="46"
-              cx="50"
-              cy="50"
-              strokeDasharray="289 289"
-              strokeDashoffset="72"
-            />
-          </svg>
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+      <FloatingOrb delay={0} size="lg" />
+      <FloatingOrb delay={1} size="md" />
+      
+      <div className="w-full max-w-xs space-y-10 text-center relative z-10">
+        <div className="relative w-32 h-32 mx-auto">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0"
+          >
+            <svg className="w-full h-full" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f09433" />
+                  <stop offset="50%" stopColor="#dc2743" />
+                  <stop offset="100%" stopColor="#bc1888" />
+                </linearGradient>
+              </defs>
+              <circle
+                className="text-zinc-800"
+                strokeWidth="4"
+                stroke="currentColor"
+                fill="transparent"
+                r="44"
+                cx="50"
+                cy="50"
+              />
+              <circle
+                stroke="url(#gradient)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                fill="transparent"
+                r="44"
+                cx="50"
+                cy="50"
+                strokeDasharray="276"
+                strokeDashoffset={276 - (276 * progress) / 100}
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+          </motion.div>
+          
           <div className="absolute inset-0 flex items-center justify-center">
-            <Instagram className="w-8 h-8 text-white/80" />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Instagram className="w-10 h-10 text-white/80" />
+            </motion.div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{status}</h2>
-          <p className="text-xs text-zinc-500">This may take a minute...</p>
+        <div className="space-y-4">
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={messageIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="text-xl font-semibold text-white"
+            >
+              {LOADING_MESSAGES[messageIndex]}
+            </motion.h2>
+          </AnimatePresence>
+          
+          <div className="space-y-2">
+            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+            <p className="text-sm text-zinc-500">
+              About {remainingTime > 60 ? `${Math.ceil(remainingTime / 60)} min` : `${remainingTime}s`} remaining
+            </p>
+          </div>
         </div>
+
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          className="text-xs text-zinc-600"
+        >
+          Analyzing {imageCount} screenshot{imageCount !== 1 ? 's' : ''} with AI
+        </motion.p>
       </div>
     </motion.div>
   );
 };
 
-const StoryProgressBar = ({ count, activeIndex, duration }: { count: number, activeIndex: number, duration: number }) => (
-  <div className="absolute top-4 left-2 right-2 z-50 flex gap-1.5 h-0.5">
+const StoryProgressBar = ({ count, activeIndex, duration }: { count: number; activeIndex: number; duration: number }) => (
+  <div className="absolute top-4 left-3 right-3 z-50 flex gap-1 h-[3px]">
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="flex-1 bg-white/30 rounded-full overflow-hidden h-full">
+      <div key={i} className="flex-1 bg-white/20 rounded-full overflow-hidden">
         <motion.div 
           className="h-full bg-white"
           initial={{ width: i < activeIndex ? "100%" : "0%" }}
           animate={{ width: i < activeIndex ? "100%" : i === activeIndex ? "100%" : "0%" }}
-          transition={{ duration: i === activeIndex ? duration : 0, ease: "linear" }}
+          transition={{ duration: i === activeIndex ? duration : 0.3, ease: "linear" }}
         />
       </div>
     ))}
   </div>
 );
 
-const StoryHeader = ({ title, subtitle }: { title: string, subtitle?: string }) => (
-  <div className="absolute top-8 left-4 right-4 z-40 flex items-center justify-between">
+const StoryHeader = ({ onClose }: { onClose: () => void }) => (
+  <div className="absolute top-10 left-4 right-4 z-40 flex items-center justify-between">
     <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
-        <div className="w-full h-full rounded-full bg-black border-2 border-black overflow-hidden">
-           <Instagram className="w-full h-full p-1 text-white" />
+      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+        <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+          <Instagram className="w-5 h-5 text-white" />
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold text-white shadow-black drop-shadow-md">Explore Wrapped</span>
-        {subtitle && <span className="text-xs text-white/80 shadow-black drop-shadow-md">{subtitle}</span>}
+        <span className="text-sm font-semibold text-white drop-shadow-lg">Explore Wrapped</span>
+        <span className="text-xs text-white/70 drop-shadow-lg">2024 Analysis</span>
       </div>
     </div>
-    <div className="flex gap-4 text-white">
-      <MoreHorizontal className="w-6 h-6 drop-shadow-md" />
-      <X className="w-6 h-6 drop-shadow-md" />
-    </div>
+    <button 
+      onClick={onClose}
+      className="p-2 text-white/80 hover:text-white transition-colors"
+      data-testid="button-close-story"
+    >
+      <X className="w-6 h-6 drop-shadow-lg" />
+    </button>
   </div>
 );
 
-const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () => void }) => {
+const slideTransition = {
+  initial: { opacity: 0, x: 50, scale: 0.95 },
+  animate: { opacity: 1, x: 0, scale: 1 },
+  exit: { opacity: 0, x: -50, scale: 0.95 },
+  transition: { duration: 0.4, ease: "easeOut" as const }
+};
+
+const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 6;
   const slideDuration = 8;
@@ -183,53 +498,106 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
     if (currentSlide > 0) setCurrentSlide(c => c - 1);
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Explore Wrapped',
+          text: `I'm a "${data.vibe}" according to my Instagram algorithm! Check out Explore Wrapped to discover yours.`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col md:items-center md:justify-center font-sans">
-      <div className="relative w-full h-full md:max-w-[400px] md:h-[800px] md:rounded-[2rem] overflow-hidden bg-black md:border border-zinc-800 shadow-2xl">
+      <div className="relative w-full h-full md:max-w-[420px] md:h-[85vh] md:max-h-[820px] md:rounded-[2.5rem] overflow-hidden bg-black md:border border-zinc-800/50 shadow-2xl md:shadow-pink-500/10">
         
         <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={slideDuration} />
-        <StoryHeader title="Explore Wrapped" subtitle="2024 Analysis" />
+        <StoryHeader onClose={onRestart} />
 
         <div className="absolute inset-0 z-30 flex">
-          <div className="w-1/3 h-full" onClick={prevSlide} />
-          <div className="w-2/3 h-full" onClick={nextSlide} />
+          <div className="w-1/3 h-full cursor-pointer" onClick={prevSlide} data-testid="button-prev-slide" />
+          <div className="w-2/3 h-full cursor-pointer" onClick={nextSlide} data-testid="button-next-slide" />
         </div>
 
         <div className="absolute inset-0 z-0">
-          <img src={bgTexture} alt="background" className="w-full h-full object-cover opacity-60 blur-2xl scale-110" />
-          <div className="absolute inset-0 bg-black/40" />
+          <img src={bgTexture} alt="" className="w-full h-full object-cover opacity-50 blur-2xl scale-125" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
         </div>
 
         <AnimatePresence mode="wait">
           {currentSlide === 0 && (
             <motion.div
               key="slide-0"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              {...slideTransition}
               className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10"
             >
-              <div className="mb-8 relative">
-                <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center animate-pulse">
-                   <Instagram className="w-12 h-12 text-white" />
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                className="mb-8 relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full blur-2xl opacity-50 animate-pulse" />
+                <div className="relative w-28 h-28 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center">
+                  <Instagram className="w-14 h-14 text-white" />
                 </div>
-              </div>
-              <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
+              </motion.div>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-4xl font-bold text-white mb-4 leading-tight"
+              >
                 Your Algorithmic<br/>Identity
-              </h1>
-              <p className="text-lg text-white/80">Analysis Complete.</p>
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-lg text-white/70"
+              >
+                Tap to reveal your results
+              </motion.p>
             </motion.div>
           )}
 
           {currentSlide === 1 && (
             <motion.div
               key="slide-1"
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col justify-center p-8 z-10"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
             >
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-8 border border-white/10 text-center space-y-6">
-                <div className="text-sm font-bold uppercase tracking-widest text-white/60">The Persona</div>
-                <h2 className="text-3xl font-bold text-white leading-tight">{data.vibe}</h2>
-                <div className="h-px w-12 bg-white/20 mx-auto" />
-                <p className="text-lg leading-relaxed text-white/90 font-medium">"{data.algorithmicPersona}"</p>
+              <div className="bg-black/50 backdrop-blur-2xl rounded-3xl p-8 border border-white/10 text-center space-y-6 shadow-2xl">
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-xs font-bold uppercase tracking-[0.2em] text-pink-400"
+                >
+                  The Algorithm Says
+                </motion.div>
+                <motion.h2 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                  className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]"
+                >
+                  {data.vibe || "Your Vibe"}
+                </motion.h2>
+                <div className="h-px w-16 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-base leading-relaxed text-white/80 font-light"
+                >
+                  "{data.algorithmicPersona || "Loading..."}"
+                </motion.p>
               </div>
             </motion.div>
           )}
@@ -237,16 +605,22 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
           {currentSlide === 2 && (
             <motion.div
               key="slide-2"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              {...slideTransition}
               className="absolute inset-0 flex flex-col justify-center p-6 z-10"
             >
-              <h2 className="text-3xl font-bold text-white mb-8 px-2">Your Feed Patterns</h2>
-              <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-white mb-6">Your Feed Patterns</h2>
+              <div className="space-y-3">
                 {(data.topThemes || []).map((theme, i) => (
-                  <div key={i} className="bg-white/10 backdrop-blur-md p-5 rounded-xl border border-white/5">
-                    <h3 className="text-lg font-bold text-white mb-1">{theme.title}</h3>
-                    <p className="text-sm text-white/80 leading-snug">{theme.description}</p>
-                  </div>
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.15 }}
+                    className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-lg"
+                  >
+                    <h3 className="text-lg font-bold text-white mb-1.5">{theme.title}</h3>
+                    <p className="text-sm text-white/70 leading-relaxed">{theme.description}</p>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -255,23 +629,39 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
           {currentSlide === 3 && (
             <motion.div
               key="slide-3"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col justify-center p-8 z-10"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
             >
-              <div className="space-y-8">
-                <div className="bg-emerald-900/40 backdrop-blur-xl p-6 rounded-2xl border border-emerald-500/20">
-                   <div className="flex items-center gap-2 mb-3 text-emerald-300 font-bold uppercase text-sm tracking-wide">
-                     <Heart className="w-4 h-4 fill-emerald-300" /> What You Crave
-                   </div>
-                   <p className="text-lg text-white font-medium">{data.emotionalLandscape}</p>
-                </div>
+              <div className="space-y-5">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-emerald-500/10 backdrop-blur-xl p-6 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                    </div>
+                    <span className="text-sm font-bold uppercase tracking-wide text-emerald-400">What You Crave</span>
+                  </div>
+                  <p className="text-white/90 leading-relaxed">{data.emotionalLandscape || "Loading..."}</p>
+                </motion.div>
 
-                <div className="bg-red-900/40 backdrop-blur-xl p-6 rounded-2xl border border-red-500/20">
-                   <div className="flex items-center gap-2 mb-3 text-red-300 font-bold uppercase text-sm tracking-wide">
-                     <Ghost className="w-4 h-4" /> What You Avoid
-                   </div>
-                   <p className="text-lg text-white font-medium">{data.missing}</p>
-                </div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-red-500/10 backdrop-blur-xl p-6 rounded-2xl border border-red-500/20 shadow-lg shadow-red-500/5"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <Ghost className="w-4 h-4 text-red-400" />
+                    </div>
+                    <span className="text-sm font-bold uppercase tracking-wide text-red-400">What You Avoid</span>
+                  </div>
+                  <p className="text-white/90 leading-relaxed">{data.missing || "Loading..."}</p>
+                </motion.div>
               </div>
             </motion.div>
           )}
@@ -279,79 +669,108 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
           {currentSlide === 4 && (
             <motion.div
               key="slide-4"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10 text-center"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10"
             >
-              <div className="w-full bg-white text-black p-8 rounded-2xl shadow-xl transform rotate-1">
-                <div className="flex justify-between items-center mb-6 border-b border-black/10 pb-4">
-                  <span className="font-bold text-xl">Hard Truths</span>
-                  <AlertTriangle className="w-6 h-6 text-black" />
+              <motion.div 
+                initial={{ rotate: -3, scale: 0.9 }}
+                animate={{ rotate: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-7 rounded-3xl shadow-2xl shadow-black/50"
+              >
+                <div className="flex justify-between items-center mb-5 pb-4 border-b border-zinc-200">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <span className="font-bold text-lg text-zinc-800">Hard Truths</span>
+                  </div>
                 </div>
-                <p className="text-xl font-medium leading-relaxed">{data.blindSpots}</p>
+                <p className="text-lg leading-relaxed text-zinc-700 font-medium">
+                  {data.blindSpots || "Loading..."}
+                </p>
                 <div className="mt-6 flex justify-center">
-                   <div className="bg-black text-white px-4 py-2 rounded-full text-sm font-bold">
-                     Swipe to deny &gt;
-                   </div>
+                  <div className="bg-zinc-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg">
+                    Swipe to deny →
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
           {currentSlide === 5 && (
             <motion.div
               key="slide-5"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
             >
-              <div className="w-full aspect-[9/16] max-h-[600px] bg-gradient-to-br from-[#1a1a1a] to-black rounded-[2rem] border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 p-32 bg-purple-500/20 blur-[80px] rounded-full pointer-events-none" />
-                <div className="absolute bottom-0 left-0 p-32 bg-orange-500/20 blur-[80px] rounded-full pointer-events-none" />
+              <motion.div 
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="w-full max-h-[65vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
+              >
+                <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/20 blur-[60px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/20 blur-[60px] rounded-full pointer-events-none" />
 
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
-                       <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                         <Instagram className="w-6 h-6 text-white" />
-                       </div>
+                <div className="relative z-10 flex-1 overflow-auto">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
+                        <Instagram className="w-5 h-5 text-white" />
+                      </div>
                     </div>
                     <div>
-                      <div className="font-bold text-white text-lg">My Algorithmic Self</div>
-                      <div className="text-white/60 text-xs uppercase tracking-wider">2024 Analysis</div>
+                      <div className="font-bold text-white">My Algorithmic Self</div>
+                      <div className="text-white/50 text-xs uppercase tracking-wider">2024 Analysis</div>
                     </div>
                   </div>
 
-                  <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
-                    {data.vibe}
+                  <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
+                    {data.vibe || "Your Vibe"}
                   </h2>
-                  <p className="text-white/80 text-sm leading-relaxed mb-6">"{data.algorithmicPersona}"</p>
+                  <p className="text-white/70 text-sm leading-relaxed mb-5">"{data.algorithmicPersona || "..."}"</p>
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-2.5">
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">Top Theme</div>
+                      <div className="text-[10px] text-white/40 uppercase font-bold mb-1 tracking-wider">Top Theme</div>
                       <div className="text-white font-medium">{data.topThemes?.[0]?.title || "N/A"}</div>
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                      <div className="text-[10px] text-white/50 uppercase font-bold mb-1">What's Missing</div>
-                      <div className="text-white font-medium text-sm">{data.missing ? data.missing.split('.')[0] : "N/A"}</div>
+                      <div className="text-[10px] text-white/40 uppercase font-bold mb-1 tracking-wider">What's Missing</div>
+                      <div className="text-white/80 text-sm">{data.missing ? data.missing.split('.')[0] : "N/A"}</div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="relative z-10 pt-6 border-t border-white/10 flex justify-between items-end">
-                   <div className="text-xs font-mono text-white/40">explorewrapped.ai</div>
-                   <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                     <span className="text-black text-xs font-bold">QR</span>
-                   </div>
+                <div className="relative z-10 pt-4 mt-4 border-t border-white/10 flex justify-between items-center">
+                  <div className="text-xs font-mono text-white/30">explorewrapped.app</div>
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                    <span className="text-black text-[10px] font-bold">QR</span>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="mt-6 flex gap-3 w-full max-w-[300px]">
-                <Button className="flex-1 bg-white text-black hover:bg-gray-100 rounded-xl font-semibold h-12" onClick={onRestart}>
-                  Restart
-                </Button>
-                <Button className="flex-1 bg-[#0095f6] text-white hover:bg-[#0095f6]/90 rounded-xl font-semibold h-12">
-                  Share Story
-                </Button>
+              <div className="mt-5 flex gap-3 w-full max-w-xs">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                  <Button 
+                    className="w-full bg-zinc-800 text-white hover:bg-zinc-700 rounded-2xl font-semibold h-13 py-4 border border-zinc-700 shadow-lg transition-all"
+                    onClick={onRestart}
+                    data-testid="button-restart"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Restart
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-[#0095f6] to-[#0077e6] text-white hover:opacity-90 rounded-2xl font-semibold h-13 py-4 shadow-lg shadow-blue-500/20 transition-all"
+                    onClick={handleShare}
+                    data-testid="button-share"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </motion.div>
               </div>
             </motion.div>
           )}
@@ -363,21 +782,45 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("IDLE");
+  const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
-  const [analysisStatus, setAnalysisStatus] = useState("Uploading images...");
   const [error, setError] = useState<string | null>(null);
 
-  const handleUpload = useCallback(async (files: File[]) => {
-    if (files.length === 0) return;
+  useEffect(() => {
+    return () => {
+      previewFiles.forEach(f => URL.revokeObjectURL(f.preview));
+    };
+  }, []);
+
+  const handleFilesSelected = useCallback((files: PreviewFile[]) => {
+    setPreviewFiles(files);
+    setAppState("PREVIEWING");
+  }, []);
+
+  const handleRemoveFile = useCallback((index: number) => {
+    setPreviewFiles(prev => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].preview);
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setAppState("IDLE");
+      }
+      return newFiles;
+    });
+  }, []);
+
+  const handleAddMore = useCallback((newFiles: PreviewFile[]) => {
+    setPreviewFiles(prev => [...prev, ...newFiles].slice(0, 10));
+  }, []);
+
+  const handleAnalyze = useCallback(async () => {
+    if (previewFiles.length === 0) return;
 
     setAppState("ANALYZING");
-    setAnalysisStatus("Uploading images...");
 
     try {
       const formData = new FormData();
-      files.forEach(file => formData.append('images', file));
-
-      setAnalysisStatus("Analyzing with AI...");
+      previewFiles.forEach(({ file }) => formData.append('images', file));
       
       const response = await fetch('/api/analyze', {
         method: 'POST',
@@ -397,23 +840,42 @@ export default function Home() {
       setError(err.message);
       setAppState("ERROR");
     }
-  }, []);
+  }, [previewFiles]);
 
   const handleRestart = useCallback(() => {
+    previewFiles.forEach(f => URL.revokeObjectURL(f.preview));
+    setPreviewFiles([]);
     setAppState("IDLE");
     setAnalysisData(null);
     setError(null);
-  }, []);
+  }, [previewFiles]);
+
+  const handleCancelPreview = useCallback(() => {
+    previewFiles.forEach(f => URL.revokeObjectURL(f.preview));
+    setPreviewFiles([]);
+    setAppState("IDLE");
+  }, [previewFiles]);
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans overflow-hidden">
       <AnimatePresence mode="wait">
         {appState === "IDLE" && (
-          <LandingView key="idle" onUpload={handleUpload} />
+          <LandingView key="idle" onFilesSelected={handleFilesSelected} />
+        )}
+
+        {appState === "PREVIEWING" && (
+          <PreviewView
+            key="previewing"
+            files={previewFiles}
+            onRemove={handleRemoveFile}
+            onAddMore={handleAddMore}
+            onAnalyze={handleAnalyze}
+            onCancel={handleCancelPreview}
+          />
         )}
         
         {appState === "ANALYZING" && (
-          <AnalyzingView key="analyzing" status={analysisStatus} />
+          <AnalyzingView key="analyzing" imageCount={previewFiles.length} />
         )}
 
         {appState === "ERROR" && (
@@ -422,18 +884,30 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center min-h-screen p-6 relative bg-black text-center"
+            className="flex flex-col items-center justify-center min-h-screen p-6 relative"
           >
-            <div className="w-full max-w-sm space-y-6">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
-              <h1 className="text-2xl font-bold">Analysis Failed</h1>
-              <p className="text-zinc-400">{error || "Something went wrong. Please try again."}</p>
-              <Button 
-                className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold"
-                onClick={handleRestart}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+            
+            <div className="w-full max-w-sm space-y-6 relative z-10 text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring" }}
+                className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto"
               >
-                Try Again
-              </Button>
+                <AlertTriangle className="w-10 h-10 text-red-400" />
+              </motion.div>
+              <h1 className="text-2xl font-bold text-white">Analysis Failed</h1>
+              <p className="text-zinc-400 leading-relaxed">{error || "Something went wrong. Please try again."}</p>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  className="w-full py-5 text-lg rounded-2xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-90 font-semibold shadow-lg shadow-pink-500/20"
+                  onClick={handleRestart}
+                  data-testid="button-try-again"
+                >
+                  Try Again
+                </Button>
+              </motion.div>
             </div>
           </motion.div>
         )}
@@ -444,24 +918,60 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center min-h-screen p-6 relative bg-black"
+            className="flex flex-col items-center justify-center min-h-screen p-6 relative"
           >
-            <div className="w-full max-w-sm text-center space-y-8">
-              <div className="relative w-32 h-32 mx-auto">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full animate-spin-slow blur-xl opacity-50" />
-                 <div className="relative w-full h-full bg-zinc-900 rounded-full flex items-center justify-center border border-white/10">
-                    <Instagram className="w-16 h-16 text-white" />
-                 </div>
-              </div>
-
-              <h1 className="text-3xl font-bold">Your Wrapped is Ready</h1>
-              
-              <Button 
-                className="w-full py-6 text-lg rounded-full bg-[#0095f6] hover:bg-[#0085db] font-semibold transition-transform active:scale-95"
-                onClick={() => setAppState("VIEWING")}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
+            <FloatingOrb delay={0} size="lg" />
+            
+            <div className="w-full max-w-sm text-center space-y-8 relative z-10">
+              <motion.div 
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="relative w-36 h-36 mx-auto"
               >
-                Open Wrapped
-              </Button>
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full blur-xl opacity-60" 
+                />
+                <div className="relative w-full h-full bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 shadow-2xl">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring" }}
+                  >
+                    <Sparkles className="w-16 h-16 text-white" />
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="space-y-2"
+              >
+                <h1 className="text-3xl font-bold text-white">Your Wrapped is Ready</h1>
+                <p className="text-zinc-400">Tap to discover your algorithmic identity</p>
+              </motion.div>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.02 }} 
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button 
+                  className="w-full py-6 text-lg rounded-2xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-90 font-semibold shadow-lg shadow-pink-500/30 transition-all"
+                  onClick={() => setAppState("VIEWING")}
+                  data-testid="button-open-wrapped"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Open Wrapped
+                </Button>
+              </motion.div>
             </div>
           </motion.div>
         )}
