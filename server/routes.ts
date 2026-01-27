@@ -12,83 +12,66 @@ const upload = multer({
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const ANALYSIS_PROMPT = `You are a digital psychologist analyzing someone's Instagram explore feed to reveal their deepest algorithmic identity. You have been given screenshots of their recent Instagram feed.
+const ANALYSIS_PROMPT = `You are analyzing someone's Instagram explore feed to understand what kind of person the algorithm has constructed them to be. You have been given screenshots of their recent Instagram feed.
 
-Your role is to go DEEP. This isn't surface-level content analysis — you're uncovering the psychological architecture that the algorithm has built around this person. You're making visible what their attention patterns, pauses, and preferences have told Instagram about their inner world.
+Your task is to reveal the algorithmic identity this feed represents. This is about making visible what their attention patterns have told Instagram about them. Be observational and grounded - focus on what you can actually see in the content.
 
-Be bold. Be specific. Be uncomfortably accurate. This should feel like looking in a mirror they didn't know existed.
+Be specific. Be insightful. Make them feel seen without over-interpreting.
 
 ANALYSIS STRUCTURE:
 
-1. THE ALGORITHMIC PERSONA (100 words)
-Write a vivid narrative about who Instagram believes this person to be. Paint a picture of their digital self — their aspirations, insecurities, obsessions, and the life they're quietly building in their mind through their feed. This should read like a character study, not a list.
+1. ALGORITHMIC IDENTITY (80-100 words)
+Write a narrative about who Instagram believes this person to be based on their feed. Describe their digital self - their interests, aesthetic preferences, and the kind of life their feed suggests they're drawn to. This should read like a character sketch based on observable patterns.
 
-2. CORE IDENTITY PATTERNS (3 themes)
+2. VISIBLE THEMES (3 themes)
 For each theme, provide:
 - A punchy title (2-4 words)
-- The surface pattern: What type of content appears (be specific: aesthetics, accounts, topics)
-- The deeper meaning: What psychological need or identity this serves
-- The uncomfortable truth: What this reveals about them that they might not consciously acknowledge
+- Surface: What type of content appears (be specific: types of accounts, visual styles, topics)
+- Deeper: What interest or need this content serves
 
-3. THE SECRET SELF
-What is this person drawn to that they might not openly admit? What guilty pleasures, hidden aspirations, or suppressed interests does the algorithm see that their friends might not? Be specific and insightful.
+3. YOUR EMOTIONAL LANDSCAPE
+What emotional needs does this feed suggest? What are they seeking - inspiration, escape, validation, information, connection, aspiration? What does the content they engage with reveal about what they're drawn to emotionally? (3-4 sentences)
 
-4. EMOTIONAL HUNGER
-What is this person really starving for? Go beyond simple emotions. Are they seeking validation for a life change? Escape from something they won't name? Permission to be someone different? Information that makes them feel in control? Connection they're not getting offline? Be specific about the emotional void this feed is trying to fill.
+4. WHAT'S MISSING
+Based on what IS present, what seems notably absent? What topics or content types is this person NOT engaging with? This reveals their boundaries, preferences, or blind spots. (2-3 sentences)
 
-5. THE DIGITAL CONTRADICTION
-Where does this feed contradict itself? What tensions exist between different content types? For example: minimalism content alongside luxury shopping, fitness content alongside comfort food, career hustle alongside escapism. What internal conflict does this reveal?
+5. HARD TRUTHS
+Tell them something about their feed patterns they might not have noticed. Be direct but kind - this should create a moment of "huh, that's true" rather than feeling attacked. What does their algorithm reveal about habits or tendencies they may not be aware of? (3-4 sentences)
 
-6. THE SHADOW (What's Conspicuously Absent)
-What's missing from this feed reveals as much as what's present. What topics, perspectives, or types of content is this person systematically avoiding? What might this avoidance protect them from confronting?
+6. THE MIRROR MOMENT
+End with a single, memorable sentence that captures their algorithmic identity. Something quotable that encapsulates what the algorithm sees. Think: "Your feed says you're someone who..."
 
-7. HARD TRUTHS (Blind Spots)
-This is where you hold up the mirror. Tell them something about themselves they probably don't want to hear but need to. Be direct but not cruel. This should create a moment of genuine self-reflection. Cover:
-- A pattern they're probably not aware of
-- What their feed says about their relationship with themselves
-- A question they should ask themselves
-
-8. THE MIRROR MOMENT
-End with a single, powerful sentence that encapsulates their entire algorithmic identity. This should be quotable, memorable, and make them pause. Think: "The algorithm knows you're looking for permission to..."
-
-CRITICAL GUIDELINES:
-- Write in second person ("you") to create direct, personal impact
-- Be SPECIFIC. Name exact types of content, aesthetics, themes. Never be vague.
-- Create introspective discomfort — this should make them think, not feel attacked
-- Avoid generic observations anyone could make. Every insight should feel personally seen.
-- Balance depth with readability. Use vivid language.
-- This should feel like a therapy session, not a marketing report.
+GUIDELINES:
+- Write in second person ("you")
+- Be SPECIFIC. Name concrete content types, aesthetics, themes you observe.
+- Stay grounded - base insights on what's visible, not psychological speculation
+- Make it feel personal and insightful without over-reaching
 
 Return your response as a JSON object with this exact structure:
 {
-  "vibe": "string (a provocative 2-4 word title for their digital persona)",
-  "algorithmicPersona": "string (the 100-word narrative character study)",
+  "vibe": "string (a catchy 2-4 word title for their persona)",
+  "algorithmicPersona": "string (the 80-100 word narrative)",
   "topThemes": [
     { 
       "title": "string (punchy 2-4 word title)", 
       "surface": "string (what content appears)",
-      "deeper": "string (psychological need this serves)",
-      "truth": "string (uncomfortable revelation)"
+      "deeper": "string (what interest or need this serves)"
     },
     { 
       "title": "string", 
       "surface": "string",
-      "deeper": "string",
-      "truth": "string"
+      "deeper": "string"
     },
     { 
       "title": "string", 
       "surface": "string",
-      "deeper": "string",
-      "truth": "string"
+      "deeper": "string"
     }
   ],
-  "secretSelf": "string (2-3 sentences about hidden draws)",
-  "emotionalHunger": "string (3-4 sentences about what they're starving for)",
-  "digitalContradiction": "string (2-3 sentences about internal tensions)",
-  "missing": "string (2-3 sentences about what's avoided)",
-  "blindSpots": "string (4-5 sentences of hard truths)",
-  "mirrorMoment": "string (one powerful, quotable sentence)"
+  "emotionalLandscape": "string (3-4 sentences about emotional needs)",
+  "missing": "string (2-3 sentences about what's absent)",
+  "blindSpots": "string (3-4 sentences of observable patterns)",
+  "mirrorMoment": "string (one memorable sentence)"
 }`;
 
 export async function registerRoutes(

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Share2, Instagram, X, Heart, AlertTriangle, ShieldAlert, Ghost, MoreHorizontal, Sparkles, Download, RotateCcw, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Upload, Share2, Instagram, X, Heart, AlertTriangle, Ghost, Image as ImageIcon, Trash2, ShieldAlert, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
 
@@ -11,7 +11,6 @@ interface ThemeItem {
   title: string;
   surface?: string;
   deeper?: string;
-  truth?: string;
   description?: string;
 }
 
@@ -19,10 +18,7 @@ interface AnalysisResult {
   vibe: string;
   algorithmicPersona: string;
   topThemes: ThemeItem[];
-  secretSelf?: string;
-  emotionalHunger?: string;
   emotionalLandscape?: string;
-  digitalContradiction?: string;
   missing: string;
   blindSpots: string;
   mirrorMoment?: string;
@@ -499,7 +495,7 @@ const slideTransition = {
 
 const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = 8;
+  const totalSlides = 7;
   const slideDuration = 10;
 
   const nextSlide = () => {
@@ -510,25 +506,28 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
     if (currentSlide > 0) setCurrentSlide(c => c - 1);
   };
 
-  const handleShare = async () => {
+  const handleInviteFriend = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'My Explore Wrapped',
-          text: `I'm a "${data.vibe}" according to my Instagram algorithm! ${data.mirrorMoment || ''} Check out Explore Wrapped to discover yours.`,
-          url: window.location.href
+          title: 'Explore Wrapped',
+          text: 'Discover what Instagram\'s algorithm thinks about you! Try Explore Wrapped:',
+          url: window.location.origin
         });
       } catch (err) {
         console.log('Share cancelled');
       }
+    } else {
+      navigator.clipboard.writeText(window.location.origin);
+      alert('Link copied to clipboard!');
     }
   };
 
   const getThemeContent = (theme: ThemeItem) => {
-    if (theme.surface && theme.deeper && theme.truth) {
-      return { surface: theme.surface, deeper: theme.deeper, truth: theme.truth };
+    if (theme.surface && theme.deeper) {
+      return { surface: theme.surface, deeper: theme.deeper };
     }
-    return { surface: theme.description || '', deeper: '', truth: '' };
+    return { surface: theme.description || '', deeper: '' };
   };
 
   return (
@@ -627,7 +626,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col justify-center p-5 z-10 overflow-auto"
             >
-              <h2 className="text-xl font-bold text-white mb-4">Identity Patterns</h2>
+              <h2 className="text-xl font-bold text-white mb-4">Visible Themes</h2>
               <div className="space-y-3 overflow-auto max-h-[70vh]">
                 {(data.topThemes || []).slice(0, 3).map((theme, i) => {
                   const content = getThemeContent(theme);
@@ -644,12 +643,9 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                         <p className="text-xs text-white/60 mb-1"><span className="text-white/40">Surface:</span> {content.surface}</p>
                       )}
                       {content.deeper && (
-                        <p className="text-xs text-white/60 mb-1"><span className="text-emerald-400/80">Deeper:</span> {content.deeper}</p>
+                        <p className="text-xs text-white/60"><span className="text-emerald-400/80">Deeper:</span> {content.deeper}</p>
                       )}
-                      {content.truth && (
-                        <p className="text-xs text-amber-300/80 italic">"{content.truth}"</p>
-                      )}
-                      {!content.deeper && !content.truth && content.surface && (
+                      {!content.deeper && content.surface && (
                         <p className="text-sm text-white/70 leading-relaxed">{content.surface}</p>
                       )}
                     </motion.div>
@@ -665,37 +661,20 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col justify-center p-5 z-10"
             >
-              <div className="space-y-4">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-purple-500/10 backdrop-blur-xl p-5 rounded-2xl border border-purple-500/20 shadow-lg"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                      <Ghost className="w-4 h-4 text-purple-400" />
-                    </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-purple-400">Your Secret Self</span>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-rose-500/10 backdrop-blur-xl p-6 rounded-2xl border border-rose-500/20 shadow-lg"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-rose-400 fill-rose-400" />
                   </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{data.secretSelf || data.emotionalLandscape || "The algorithm sees what you don't show others..."}</p>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-rose-500/10 backdrop-blur-xl p-5 rounded-2xl border border-rose-500/20 shadow-lg"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
-                      <Heart className="w-4 h-4 text-rose-400 fill-rose-400" />
-                    </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-rose-400">Emotional Hunger</span>
-                  </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{data.emotionalHunger || data.emotionalLandscape || "What you're really starving for..."}</p>
-                </motion.div>
-              </div>
+                  <span className="text-sm font-bold uppercase tracking-wide text-rose-400">Your Emotional Landscape</span>
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed">{data.emotionalLandscape || "What your feed reveals about your emotional needs..."}</p>
+              </motion.div>
             </motion.div>
           )}
 
@@ -705,37 +684,20 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col justify-center p-5 z-10"
             >
-              <div className="space-y-4">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-amber-500/10 backdrop-blur-xl p-5 rounded-2xl border border-amber-500/20 shadow-lg"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-amber-400">Digital Contradiction</span>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-slate-500/10 backdrop-blur-xl p-6 rounded-2xl border border-slate-500/20 shadow-lg"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-500/20 flex items-center justify-center">
+                    <Ghost className="w-4 h-4 text-slate-400" />
                   </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{data.digitalContradiction || "Where your feed conflicts with itself..."}</p>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-slate-500/10 backdrop-blur-xl p-5 rounded-2xl border border-slate-500/20 shadow-lg"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-500/20 flex items-center justify-center">
-                      <X className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-slate-400">The Shadow</span>
-                  </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{data.missing || "What you systematically avoid..."}</p>
-                </motion.div>
-              </div>
+                  <span className="text-sm font-bold uppercase tracking-wide text-slate-400">What's Missing</span>
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed">{data.missing || "What your feed reveals by its absence..."}</p>
+              </motion.div>
             </motion.div>
           )}
 
@@ -752,19 +714,14 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                 className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-6 rounded-3xl shadow-2xl shadow-black/50 max-h-[70vh] overflow-auto"
               >
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-200">
-                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
                   </div>
                   <span className="font-bold text-lg text-zinc-800">Hard Truths</span>
                 </div>
                 <p className="text-base leading-relaxed text-zinc-700">
                   {data.blindSpots || "Loading..."}
                 </p>
-                <div className="mt-5 flex justify-center">
-                  <div className="bg-zinc-900 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
-                    Keep swiping... if you dare →
-                  </div>
-                </div>
               </motion.div>
             </motion.div>
           )}
@@ -798,87 +755,22 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   transition={{ delay: 0.6 }}
                   className="w-24 h-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] mx-auto rounded-full"
                 />
-              </motion.div>
-            </motion.div>
-          )}
-
-          {currentSlide === 7 && (
-            <motion.div
-              key="slide-7"
-              {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
-            >
-              <motion.div 
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="w-full max-h-[60vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/20 blur-[50px] rounded-full pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
-
-                <div className="relative z-10 flex-1 overflow-auto">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
-                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                        <Instagram className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">My Algorithmic Self</div>
-                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Deep Analysis</div>
-                    </div>
-                  </div>
-
-                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
-                    {data.vibe || "Your Vibe"}
-                  </h2>
-                  
-                  {data.mirrorMoment && (
-                    <p className="text-white/60 text-xs italic mb-4">"{data.mirrorMoment}"</p>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                      <div className="text-[9px] text-white/40 uppercase font-bold mb-0.5 tracking-wider">Top Theme</div>
-                      <div className="text-white text-sm font-medium">{data.topThemes?.[0]?.title || "N/A"}</div>
-                    </div>
-                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                      <div className="text-[9px] text-white/40 uppercase font-bold mb-0.5 tracking-wider">Hidden Truth</div>
-                      <div className="text-white/80 text-xs">{data.topThemes?.[0]?.truth || data.missing?.split('.')[0] || "N/A"}</div>
-                    </div>
-                  </div>
-                </div>
                 
-                <div className="relative z-10 pt-3 mt-3 border-t border-white/10 flex justify-between items-center">
-                  <div className="text-[10px] font-mono text-white/30">explorewrapped.app</div>
-                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-black text-[8px] font-bold">QR</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className="mt-4 flex gap-3 w-full max-w-xs">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
                   <Button 
-                    className="w-full bg-zinc-800 text-white hover:bg-zinc-700 rounded-2xl font-semibold py-3 border border-zinc-700 shadow-lg transition-all text-sm"
-                    onClick={onRestart}
-                    data-testid="button-restart"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Restart
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-[#0095f6] to-[#0077e6] text-white hover:opacity-90 rounded-2xl font-semibold py-3 shadow-lg shadow-blue-500/20 transition-all text-sm"
-                    onClick={handleShare}
-                    data-testid="button-share"
+                    className="bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-3 px-6 shadow-lg shadow-pink-500/20 transition-all text-sm"
+                    onClick={handleInviteFriend}
+                    data-testid="button-invite-friend"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
-                    Share
+                    Invite a friend to try
                   </Button>
                 </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
