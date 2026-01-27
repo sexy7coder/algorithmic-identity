@@ -7,13 +7,25 @@ import bgTexture from "@assets/generated_images/instagram_stories_gradient_backg
 
 type AppState = "IDLE" | "PREVIEWING" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
+interface ThemeItem {
+  title: string;
+  surface?: string;
+  deeper?: string;
+  truth?: string;
+  description?: string;
+}
+
 interface AnalysisResult {
   vibe: string;
   algorithmicPersona: string;
-  topThemes: Array<{ title: string; description: string }>;
-  emotionalLandscape: string;
+  topThemes: ThemeItem[];
+  secretSelf?: string;
+  emotionalHunger?: string;
+  emotionalLandscape?: string;
+  digitalContradiction?: string;
   missing: string;
   blindSpots: string;
+  mirrorMoment?: string;
 }
 
 interface PreviewFile {
@@ -487,8 +499,8 @@ const slideTransition = {
 
 const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = 6;
-  const slideDuration = 8;
+  const totalSlides = 8;
+  const slideDuration = 10;
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
@@ -503,13 +515,20 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
       try {
         await navigator.share({
           title: 'My Explore Wrapped',
-          text: `I'm a "${data.vibe}" according to my Instagram algorithm! Check out Explore Wrapped to discover yours.`,
+          text: `I'm a "${data.vibe}" according to my Instagram algorithm! ${data.mirrorMoment || ''} Check out Explore Wrapped to discover yours.`,
           url: window.location.href
         });
       } catch (err) {
         console.log('Share cancelled');
       }
     }
+  };
+
+  const getThemeContent = (theme: ThemeItem) => {
+    if (theme.surface && theme.deeper && theme.truth) {
+      return { surface: theme.surface, deeper: theme.deeper, truth: theme.truth };
+    }
+    return { surface: theme.description || '', deeper: '', truth: '' };
   };
 
   return (
@@ -561,7 +580,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                 transition={{ delay: 0.6 }}
                 className="text-lg text-white/70"
               >
-                Tap to reveal your results
+                A deep dive into your digital self
               </motion.p>
             </motion.div>
           )}
@@ -572,20 +591,20 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col justify-center p-6 z-10"
             >
-              <div className="bg-black/50 backdrop-blur-2xl rounded-3xl p-8 border border-white/10 text-center space-y-6 shadow-2xl">
+              <div className="bg-black/50 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 text-center space-y-5 shadow-2xl">
                 <motion.div 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                   className="text-xs font-bold uppercase tracking-[0.2em] text-pink-400"
                 >
-                  The Algorithm Says
+                  The Algorithm Sees You As
                 </motion.div>
                 <motion.h2 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3, type: "spring" }}
-                  className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]"
+                  className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]"
                 >
                   {data.vibe || "Your Vibe"}
                 </motion.h2>
@@ -594,7 +613,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="text-base leading-relaxed text-white/80 font-light"
+                  className="text-sm leading-relaxed text-white/80 font-light max-h-[200px] overflow-auto"
                 >
                   "{data.algorithmicPersona || "Loading..."}"
                 </motion.p>
@@ -606,22 +625,36 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-2"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
+              className="absolute inset-0 flex flex-col justify-center p-5 z-10 overflow-auto"
             >
-              <h2 className="text-2xl font-bold text-white mb-6">Your Feed Patterns</h2>
-              <div className="space-y-3">
-                {(data.topThemes || []).map((theme, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.15 }}
-                    className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-lg"
-                  >
-                    <h3 className="text-lg font-bold text-white mb-1.5">{theme.title}</h3>
-                    <p className="text-sm text-white/70 leading-relaxed">{theme.description}</p>
-                  </motion.div>
-                ))}
+              <h2 className="text-xl font-bold text-white mb-4">Identity Patterns</h2>
+              <div className="space-y-3 overflow-auto max-h-[70vh]">
+                {(data.topThemes || []).slice(0, 3).map((theme, i) => {
+                  const content = getThemeContent(theme);
+                  return (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.15 }}
+                      className="bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-lg"
+                    >
+                      <h3 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">{theme.title}</h3>
+                      {content.surface && (
+                        <p className="text-xs text-white/60 mb-1"><span className="text-white/40">Surface:</span> {content.surface}</p>
+                      )}
+                      {content.deeper && (
+                        <p className="text-xs text-white/60 mb-1"><span className="text-emerald-400/80">Deeper:</span> {content.deeper}</p>
+                      )}
+                      {content.truth && (
+                        <p className="text-xs text-amber-300/80 italic">"{content.truth}"</p>
+                      )}
+                      {!content.deeper && !content.truth && content.surface && (
+                        <p className="text-sm text-white/70 leading-relaxed">{content.surface}</p>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -630,37 +663,37 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-3"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
+              className="absolute inset-0 flex flex-col justify-center p-5 z-10"
             >
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-emerald-500/10 backdrop-blur-xl p-6 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5"
+                  className="bg-purple-500/10 backdrop-blur-xl p-5 rounded-2xl border border-purple-500/20 shadow-lg"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <Heart className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                      <Ghost className="w-4 h-4 text-purple-400" />
                     </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-emerald-400">What You Crave</span>
+                    <span className="text-sm font-bold uppercase tracking-wide text-purple-400">Your Secret Self</span>
                   </div>
-                  <p className="text-white/90 leading-relaxed">{data.emotionalLandscape || "Loading..."}</p>
+                  <p className="text-white/90 text-sm leading-relaxed">{data.secretSelf || data.emotionalLandscape || "The algorithm sees what you don't show others..."}</p>
                 </motion.div>
 
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-red-500/10 backdrop-blur-xl p-6 rounded-2xl border border-red-500/20 shadow-lg shadow-red-500/5"
+                  className="bg-rose-500/10 backdrop-blur-xl p-5 rounded-2xl border border-rose-500/20 shadow-lg"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <Ghost className="w-4 h-4 text-red-400" />
+                    <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-rose-400 fill-rose-400" />
                     </div>
-                    <span className="text-sm font-bold uppercase tracking-wide text-red-400">What You Avoid</span>
+                    <span className="text-sm font-bold uppercase tracking-wide text-rose-400">Emotional Hunger</span>
                   </div>
-                  <p className="text-white/90 leading-relaxed">{data.missing || "Loading..."}</p>
+                  <p className="text-white/90 text-sm leading-relaxed">{data.emotionalHunger || data.emotionalLandscape || "What you're really starving for..."}</p>
                 </motion.div>
               </div>
             </motion.div>
@@ -670,31 +703,39 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-4"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10"
+              className="absolute inset-0 flex flex-col justify-center p-5 z-10"
             >
-              <motion.div 
-                initial={{ rotate: -3, scale: 0.9 }}
-                animate={{ rotate: 1, scale: 1 }}
-                transition={{ type: "spring", stiffness: 200 }}
-                className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-7 rounded-3xl shadow-2xl shadow-black/50"
-              >
-                <div className="flex justify-between items-center mb-5 pb-4 border-b border-zinc-200">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <div className="space-y-4">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-amber-500/10 backdrop-blur-xl p-5 rounded-2xl border border-amber-500/20 shadow-lg"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
                     </div>
-                    <span className="font-bold text-lg text-zinc-800">Hard Truths</span>
+                    <span className="text-sm font-bold uppercase tracking-wide text-amber-400">Digital Contradiction</span>
                   </div>
-                </div>
-                <p className="text-lg leading-relaxed text-zinc-700 font-medium">
-                  {data.blindSpots || "Loading..."}
-                </p>
-                <div className="mt-6 flex justify-center">
-                  <div className="bg-zinc-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg">
-                    Swipe to deny →
+                  <p className="text-white/90 text-sm leading-relaxed">{data.digitalContradiction || "Where your feed conflicts with itself..."}</p>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-slate-500/10 backdrop-blur-xl p-5 rounded-2xl border border-slate-500/20 shadow-lg"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-500/20 flex items-center justify-center">
+                      <X className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <span className="text-sm font-bold uppercase tracking-wide text-slate-400">The Shadow</span>
                   </div>
-                </div>
-              </motion.div>
+                  <p className="text-white/90 text-sm leading-relaxed">{data.missing || "What you systematically avoid..."}</p>
+                </motion.div>
+              </div>
             </motion.div>
           )}
 
@@ -705,55 +746,121 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
             >
               <motion.div 
+                initial={{ rotate: -2, scale: 0.9 }}
+                animate={{ rotate: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-6 rounded-3xl shadow-2xl shadow-black/50 max-h-[70vh] overflow-auto"
+              >
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-200">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                  </div>
+                  <span className="font-bold text-lg text-zinc-800">Hard Truths</span>
+                </div>
+                <p className="text-base leading-relaxed text-zinc-700">
+                  {data.blindSpots || "Loading..."}
+                </p>
+                <div className="mt-5 flex justify-center">
+                  <div className="bg-zinc-900 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg">
+                    Keep swiping... if you dare →
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {currentSlide === 6 && (
+            <motion.div
+              key="slide-6"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10 text-center"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 150 }}
+                className="space-y-8"
+              >
+                <div className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">
+                  The Mirror Moment
+                </div>
+                <motion.blockquote 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-2xl md:text-3xl font-bold text-white leading-relaxed italic"
+                >
+                  "{data.mirrorMoment || "The algorithm knows you better than you know yourself."}"
+                </motion.blockquote>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="w-24 h-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] mx-auto rounded-full"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+
+          {currentSlide === 7 && (
+            <motion.div
+              key="slide-7"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
+            >
+              <motion.div 
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="w-full max-h-[65vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
+                className="w-full max-h-[60vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
               >
-                <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/20 blur-[60px] rounded-full pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/20 blur-[60px] rounded-full pointer-events-none" />
+                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/20 blur-[50px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
 
                 <div className="relative z-10 flex-1 overflow-auto">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
                       <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                        <Instagram className="w-5 h-5 text-white" />
+                        <Instagram className="w-4 h-4 text-white" />
                       </div>
                     </div>
                     <div>
-                      <div className="font-bold text-white">My Algorithmic Self</div>
-                      <div className="text-white/50 text-xs uppercase tracking-wider">2024 Analysis</div>
+                      <div className="font-bold text-white text-sm">My Algorithmic Self</div>
+                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Deep Analysis</div>
                     </div>
                   </div>
 
-                  <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
+                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
                     {data.vibe || "Your Vibe"}
                   </h2>
-                  <p className="text-white/70 text-sm leading-relaxed mb-5">"{data.algorithmicPersona || "..."}"</p>
+                  
+                  {data.mirrorMoment && (
+                    <p className="text-white/60 text-xs italic mb-4">"{data.mirrorMoment}"</p>
+                  )}
 
-                  <div className="space-y-2.5">
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                      <div className="text-[10px] text-white/40 uppercase font-bold mb-1 tracking-wider">Top Theme</div>
-                      <div className="text-white font-medium">{data.topThemes?.[0]?.title || "N/A"}</div>
+                  <div className="space-y-2">
+                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                      <div className="text-[9px] text-white/40 uppercase font-bold mb-0.5 tracking-wider">Top Theme</div>
+                      <div className="text-white text-sm font-medium">{data.topThemes?.[0]?.title || "N/A"}</div>
                     </div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                      <div className="text-[10px] text-white/40 uppercase font-bold mb-1 tracking-wider">What's Missing</div>
-                      <div className="text-white/80 text-sm">{data.missing ? data.missing.split('.')[0] : "N/A"}</div>
+                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                      <div className="text-[9px] text-white/40 uppercase font-bold mb-0.5 tracking-wider">Hidden Truth</div>
+                      <div className="text-white/80 text-xs">{data.topThemes?.[0]?.truth || data.missing?.split('.')[0] || "N/A"}</div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="relative z-10 pt-4 mt-4 border-t border-white/10 flex justify-between items-center">
-                  <div className="text-xs font-mono text-white/30">explorewrapped.app</div>
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-black text-[10px] font-bold">QR</span>
+                <div className="relative z-10 pt-3 mt-3 border-t border-white/10 flex justify-between items-center">
+                  <div className="text-[10px] font-mono text-white/30">explorewrapped.app</div>
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                    <span className="text-black text-[8px] font-bold">QR</span>
                   </div>
                 </div>
               </motion.div>
 
-              <div className="mt-5 flex gap-3 w-full max-w-xs">
+              <div className="mt-4 flex gap-3 w-full max-w-xs">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
                   <Button 
-                    className="w-full bg-zinc-800 text-white hover:bg-zinc-700 rounded-2xl font-semibold h-13 py-4 border border-zinc-700 shadow-lg transition-all"
+                    className="w-full bg-zinc-800 text-white hover:bg-zinc-700 rounded-2xl font-semibold py-3 border border-zinc-700 shadow-lg transition-all text-sm"
                     onClick={onRestart}
                     data-testid="button-restart"
                   >
@@ -763,7 +870,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
                   <Button 
-                    className="w-full bg-gradient-to-r from-[#0095f6] to-[#0077e6] text-white hover:opacity-90 rounded-2xl font-semibold h-13 py-4 shadow-lg shadow-blue-500/20 transition-all"
+                    className="w-full bg-gradient-to-r from-[#0095f6] to-[#0077e6] text-white hover:opacity-90 rounded-2xl font-semibold py-3 shadow-lg shadow-blue-500/20 transition-all text-sm"
                     onClick={handleShare}
                     data-testid="button-share"
                   >
