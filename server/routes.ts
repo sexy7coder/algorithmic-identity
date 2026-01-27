@@ -94,6 +94,7 @@ export async function registerRoutes(
       });
 
       const analysis = JSON.parse(response.choices[0].message.content || "{}");
+      console.log("AI Analysis Result:", JSON.stringify(analysis, null, 2));
       
       res.json(analysis);
     } catch (error: any) {

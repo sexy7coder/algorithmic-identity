@@ -242,7 +242,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
             >
               <h2 className="text-3xl font-bold text-white mb-8 px-2">Your Feed Patterns</h2>
               <div className="space-y-4">
-                {data.topThemes.map((theme, i) => (
+                {(data.topThemes || []).map((theme, i) => (
                   <div key={i} className="bg-white/10 backdrop-blur-md p-5 rounded-xl border border-white/5">
                     <h3 className="text-lg font-bold text-white mb-1">{theme.title}</h3>
                     <p className="text-sm text-white/80 leading-snug">{theme.description}</p>
@@ -328,11 +328,11 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult, onRestart: () =>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                       <div className="text-[10px] text-white/50 uppercase font-bold mb-1">Top Theme</div>
-                      <div className="text-white font-medium">{data.topThemes[0]?.title || "N/A"}</div>
+                      <div className="text-white font-medium">{data.topThemes?.[0]?.title || "N/A"}</div>
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                       <div className="text-[10px] text-white/50 uppercase font-bold mb-1">What's Missing</div>
-                      <div className="text-white font-medium text-sm">{data.missing.split('.')[0]}</div>
+                      <div className="text-white font-medium text-sm">{data.missing ? data.missing.split('.')[0] : "N/A"}</div>
                     </div>
                   </div>
                 </div>
