@@ -9,7 +9,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const ANALYSIS_PROMPT = `You are analyzing someone's Instagram feed to understand what kind of person the algorithm has constructed them to be. You have been given screenshots of their recent Instagram feed.
@@ -76,8 +76,12 @@ export async function registerRoutes(
 
       // Call OpenAI with vision model
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that analyzes Instagram screenshots and returns JSON."
+          },
           {
             role: "user",
             content: [
@@ -93,8 +97,10 @@ export async function registerRoutes(
         max_completion_tokens: 2048
       });
 
-      const analysis = JSON.parse(response.choices[0].message.content || "{}");
-      console.log("AI Analysis Result:", JSON.stringify(analysis, null, 2));
+      const content = response.choices[0].message.content || "{}";
+      console.log("Raw AI Response:", content);
+      const analysis = JSON.parse(content);
+      console.log("Parsed AI Analysis Result:", JSON.stringify(analysis, null, 2));
       
       res.json(analysis);
     } catch (error: any) {
