@@ -30,13 +30,21 @@ For each theme, provide:
 - Deeper: What interest or need this content serves
 
 3. YOUR EMOTIONAL LANDSCAPE
-What emotional needs does this feed suggest? What are they seeking - inspiration, escape, validation, information, connection, aspiration? What does the content they engage with reveal about what they're drawn to emotionally? (3-4 sentences)
+Go deeper than surface emotions. What does the cumulative weight of this feed reveal about their inner state? Consider:
+- What are they consistently drawn to, and what does that pattern suggest about what they're seeking in life right now?
+- Is there an underlying theme - are they in a season of change, searching for something, processing something, or building toward something?
+- What emotional frequency does their feed operate on - comfort, ambition, escape, belonging, self-improvement, validation?
+Connect the dots between different content types to paint a picture of their emotional world. (4-5 sentences)
 
 4. WHAT'S MISSING
 Based on what IS present, what seems notably absent? What topics or content types is this person NOT engaging with? This reveals their boundaries, preferences, or blind spots. (2-3 sentences)
 
 5. HARD TRUTHS
-Tell them something about their feed patterns they might not have noticed. Be direct but kind - this should create a moment of "huh, that's true" rather than feeling attacked. What does their algorithm reveal about habits or tendencies they may not be aware of? (3-4 sentences)
+This is where you hold up a gentle but honest mirror. Go beyond surface observations to reveal something meaningful:
+- What pattern in their feed might they not consciously recognize, but would resonate as true once pointed out?
+- What does the consistency of certain content types reveal about where their attention habitually goes?
+- What might this feed suggest about the gap between who they are and who they're trying to become?
+Make them pause and think "...that's actually true." Be insightful without being harsh. This should feel like a friend who knows them well sharing an observation they needed to hear. (4-5 sentences)
 
 6. THE MIRROR MOMENT
 End with a single, memorable sentence that captures their algorithmic identity. Something quotable that encapsulates what the algorithm sees. Think: "Your feed says you're someone who..."
@@ -68,9 +76,9 @@ Return your response as a JSON object with this exact structure:
       "deeper": "string"
     }
   ],
-  "emotionalLandscape": "string (3-4 sentences about emotional needs)",
+  "emotionalLandscape": "string (4-5 sentences about emotional landscape)",
   "missing": "string (2-3 sentences about what's absent)",
-  "blindSpots": "string (3-4 sentences of observable patterns)",
+  "blindSpots": "string (4-5 sentences of insightful hard truths)",
   "mirrorMoment": "string (one memorable sentence)"
 }`;
 

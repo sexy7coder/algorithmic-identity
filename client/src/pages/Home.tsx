@@ -495,7 +495,7 @@ const slideTransition = {
 
 const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const totalSlides = 7;
+  const totalSlides = 8;
   const slideDuration = 10;
 
   const nextSlide = () => {
@@ -755,21 +755,73 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   transition={{ delay: 0.6 }}
                   className="w-24 h-1 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] mx-auto rounded-full"
                 />
+              </motion.div>
+            </motion.div>
+          )}
+
+          {currentSlide === 7 && (
+            <motion.div
+              key="slide-7"
+              {...slideTransition}
+              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
+            >
+              <motion.div 
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="w-full max-h-[55vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
+              >
+                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/20 blur-[50px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
+
+                <div className="relative z-10 flex-1 overflow-auto">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
+                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
+                        <Instagram className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-bold text-white text-sm">My Algorithmic Self</div>
+                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Explore Wrapped</div>
+                    </div>
+                  </div>
+
+                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
+                    {data.vibe || "Your Vibe"}
+                  </h2>
+                  
+                  {data.mirrorMoment && (
+                    <p className="text-white/60 text-xs italic mb-4">"{data.mirrorMoment}"</p>
+                  )}
+
+                  <div className="space-y-2">
+                    {(data.topThemes || []).slice(0, 2).map((theme, i) => (
+                      <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/5">
+                        <div className="text-white text-sm font-medium">{theme.title}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
+                <div className="relative z-10 pt-3 mt-3 border-t border-white/10">
+                  <div className="text-[10px] font-mono text-white/30 text-center">explorewrapped.app</div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-5 w-full max-w-xs"
+              >
+                <Button 
+                  className="w-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-4 shadow-lg shadow-pink-500/20 transition-all"
+                  onClick={handleInviteFriend}
+                  data-testid="button-invite-friend"
                 >
-                  <Button 
-                    className="bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-3 px-6 shadow-lg shadow-pink-500/20 transition-all text-sm"
-                    onClick={handleInviteFriend}
-                    data-testid="button-invite-friend"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Invite a friend to try
-                  </Button>
-                </motion.div>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Invite a friend to try
+                </Button>
               </motion.div>
             </motion.div>
           )}
