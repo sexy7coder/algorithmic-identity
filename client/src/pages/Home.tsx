@@ -669,7 +669,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               key="slide-0"
               {...slideTransition}
               className="absolute inset-0 z-10 flex flex-col justify-center p-8"
-              style={{ backgroundColor: '#000', fontFamily: "'Space Mono', 'Courier New', Courier, monospace" }}
+              style={{ background: 'linear-gradient(135deg, #1a003a 0%, #080018 55%, #000000 100%)', fontFamily: "'Outfit', 'Inter', Arial, sans-serif" }}
             >
               {/* CRT scanlines */}
               <div style={{
