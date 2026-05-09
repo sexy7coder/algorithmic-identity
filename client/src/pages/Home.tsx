@@ -138,7 +138,7 @@ const LandingView = ({ onFilesSelected }: { onFilesSelected: (files: PreviewFile
           className="space-y-3"
         >
           <p className="text-xl font-medium text-white/90">
-            Discover your algorithmic identity
+            Discover what your attention patterns reveal about you
           </p>
           <p className="text-sm text-zinc-400 max-w-xs mx-auto leading-relaxed">
             Upload screenshots of your explore page to reveal what the algorithm really thinks of you.
