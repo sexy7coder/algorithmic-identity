@@ -127,7 +127,7 @@ const LandingView = ({ onFilesSelected }: { onFilesSelected: (files: PreviewFile
             transition={{ delay: 0.3, duration: 0.6 }}
             className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF]"
           >
-            Explore Wrapped
+            Algorithmic Identity
           </motion.h1>
         </motion.div>
 
@@ -475,8 +475,8 @@ const StoryHeader = ({ onClose }: { onClose: () => void }) => (
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold text-white drop-shadow-lg">Explore Wrapped</span>
-        <span className="text-xs text-white/70 drop-shadow-lg">2024 Analysis</span>
+        <span className="text-sm font-semibold text-white drop-shadow-lg">Algorithmic Identity</span>
+        <span className="text-xs text-white/70 drop-shadow-lg">what Instagram thinks of you</span>
       </div>
     </div>
     <button 
@@ -829,7 +829,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                     </div>
                     <div>
                       <div className="font-bold text-white text-sm">My Algorithmic Self</div>
-                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Explore Wrapped</div>
+                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Algorithmic Identity</div>
                     </div>
                   </div>
 
