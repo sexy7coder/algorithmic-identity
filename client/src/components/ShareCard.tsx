@@ -164,7 +164,7 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
               fontWeight: 500,
               letterSpacing: '0.06em',
             }}>
-              algorithmic-identity.vercel.app
+              An experiment by Meet Ahluwalia
             </div>
           </div>
         </div>

@@ -844,7 +844,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                         </div>
                       ))}
                     </div>
-                    <p className="text-[6px] text-orange-400/50 text-center mt-2">algorithmic-identity.vercel.app</p>
+                    <p className="text-[6px] text-orange-400/50 text-center mt-2">An experiment by Meet Ahluwalia</p>
                   </div>
                 </motion.div>
               </div>
