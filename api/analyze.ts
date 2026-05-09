@@ -8,9 +8,10 @@ export const config = {
   },
 };
 
+// Keep individual file limit well under Vercel's 4.5 MB total request cap
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 3 * 1024 * 1024 },
 });
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -99,13 +100,26 @@ export default async function handler(req: Request, res: Response) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("OPENAI_API_KEY is not set");
+    return res.status(500).json({ error: "Server configuration error: OPENAI_API_KEY is not set." });
+  }
+
   try {
     await runMiddleware(req, res, upload.array("images", 10));
+  } catch (uploadError: any) {
+    console.error("Upload error:", uploadError);
+    if (uploadError.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ error: "One or more images exceed the 3 MB per-file limit. Please use smaller screenshots." });
+    }
+    return res.status(400).json({ error: "File upload failed.", details: uploadError.message });
+  }
 
+  try {
     const files = (req as any).files as UploadedFile[];
 
     if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No images uploaded" });
+      return res.status(400).json({ error: "No images uploaded." });
     }
 
     const imageContents = files.map((file) => ({
@@ -141,7 +155,7 @@ export default async function handler(req: Request, res: Response) {
   } catch (error: any) {
     console.error("Analysis error:", error);
     return res.status(500).json({
-      error: "Failed to analyze images",
+      error: "Failed to analyze images.",
       details: error.message,
     });
   }

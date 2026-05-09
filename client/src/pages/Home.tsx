@@ -926,20 +926,38 @@ export default function Home() {
   const handleAnalyze = useCallback(async () => {
     if (previewFiles.length === 0) return;
 
+    // Guard against Vercel's 4.5 MB hard request body limit
+    const totalBytes = previewFiles.reduce((sum, { file }) => sum + file.size, 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      setError(`Total upload size is ${(totalBytes / 1024 / 1024).toFixed(1)} MB — the limit is 4 MB. Try uploading fewer or smaller screenshots.`);
+      setAppState("ERROR");
+      return;
+    }
+
     setAppState("ANALYZING");
 
     try {
       const formData = new FormData();
       previewFiles.forEach(({ file }) => formData.append('images', file));
-      
+
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        // Vercel may return plain text (e.g. "Request Entity Too Large") — never assume JSON
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Analysis failed.');
+        } else {
+          if (response.status === 413) {
+            throw new Error('Images are too large. Please upload fewer or smaller screenshots (4 MB total max).');
+          }
+          const text = await response.text();
+          throw new Error(text.slice(0, 120) || `Request failed (${response.status}).`);
+        }
       }
 
       const data = await response.json();
