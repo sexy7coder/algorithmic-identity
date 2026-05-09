@@ -16,156 +16,164 @@ interface AnalysisResult {
   missing: string;
   blindSpots: string;
   mirrorMoment?: string;
+  shadowTruth?: string;
 }
 
 const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
   ({ data }, ref) => {
-    const themes = (data.topThemes || []).slice(0, 3);
+    const truth = data.shadowTruth || data.mirrorMoment || "Your feed reveals what you won't say out loud.";
 
     return (
       <div
         ref={ref}
+        data-share-card="1"
         style={{
           position: 'fixed',
           left: '-9999px',
           top: '0px',
           width: '540px',
           height: '960px',
-          backgroundColor: '#0a0a0a',
-          fontFamily: "'Outfit', 'Inter', sans-serif",
+          backgroundColor: '#070707',
+          fontFamily: "'Space Mono', 'Courier New', Courier, monospace",
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          padding: '72px 56px 60px',
           boxSizing: 'border-box',
         }}
       >
-        {/* Pink/purple blob — top right */}
+        {/* CRT scanlines overlay */}
         <div style={{
-          position: 'absolute', top: '-80px', right: '-100px',
-          width: '520px', height: '520px',
-          background: 'radial-gradient(ellipse at center, rgba(188,24,136,0.55) 0%, rgba(188,24,136,0.18) 38%, transparent 62%)',
-          pointerEvents: 'none',
+          position: 'absolute', inset: 0,
+          background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.14) 3px, rgba(0,0,0,0.14) 4px)',
+          pointerEvents: 'none', zIndex: 10,
         }} />
-        {/* Orange blob — bottom left */}
+        {/* Vignette — CRT screen edge darkening */}
         <div style={{
-          position: 'absolute', bottom: '-60px', left: '-80px',
-          width: '460px', height: '460px',
-          background: 'radial-gradient(ellipse at center, rgba(240,148,51,0.45) 0%, rgba(240,148,51,0.12) 38%, transparent 62%)',
-          pointerEvents: 'none',
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.72) 100%)',
+          pointerEvents: 'none', zIndex: 10,
         }} />
-        {/* Red blob — mid right */}
+        {/* Subtle amber glow at top-center */}
         <div style={{
-          position: 'absolute', top: '400px', right: '-60px',
-          width: '300px', height: '300px',
-          background: 'radial-gradient(ellipse at center, rgba(220,39,67,0.28) 0%, transparent 58%)',
-          pointerEvents: 'none',
+          position: 'absolute', top: '-60px', left: '50%',
+          transform: 'translateX(-50%)',
+          width: '400px', height: '300px',
+          background: 'radial-gradient(ellipse at center, rgba(240,148,51,0.12) 0%, transparent 65%)',
+          pointerEvents: 'none', zIndex: 5,
         }} />
 
-        {/* Content */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Classified header bar */}
+        <div style={{
+          backgroundColor: '#f09433',
+          padding: '11px 44px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          position: 'relative', zIndex: 20,
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#070707', letterSpacing: '0.18em' }}>
+            ■ ALGORITHMIC PROFILE
+          </span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#070707', letterSpacing: '0.12em' }}>
+            [CLASSIFIED]
+          </span>
+        </div>
 
-          {/* Top label */}
-          <div style={{
-            fontSize: '13px',
-            fontWeight: 400,
-            color: 'rgba(255,255,255,0.35)',
-            letterSpacing: '0.01em',
-            lineHeight: 1.4,
-            marginBottom: '18px',
-          }}>
-            my algorithm thinks i am a —
+        {/* Amber separator line */}
+        <div style={{ height: '1px', backgroundColor: 'rgba(240,148,51,0.25)', flexShrink: 0, position: 'relative', zIndex: 20 }} />
+
+        {/* Main content */}
+        <div style={{
+          position: 'relative', zIndex: 20,
+          display: 'flex', flexDirection: 'column',
+          flex: 1,
+          padding: '52px 44px 44px',
+        }}>
+
+          {/* Identity framing — prominent two-line label */}
+          <div style={{ marginBottom: '6px' }}>
+            <div style={{
+              fontSize: '13px',
+              fontWeight: 400,
+              color: 'rgba(255,255,255,0.38)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              lineHeight: 1.6,
+            }}>
+              MY INSTAGRAM ALGORITHM
+            </div>
+            <div style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.65)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}>
+              THINKS I AM A/AN:
+            </div>
           </div>
 
-          {/* Vibe — white, bold */}
+          {/* Vibe — large, white, uppercase monospace */}
           <div style={{
-            fontSize: '72px',
-            fontWeight: 800,
+            fontSize: '58px',
+            fontWeight: 700,
             lineHeight: 1.0,
             color: '#ffffff',
-            marginBottom: '32px',
-            letterSpacing: '-0.03em',
+            letterSpacing: '-0.01em',
             wordBreak: 'break-word',
+            textTransform: 'uppercase',
+            marginTop: '24px',
+            marginBottom: '40px',
           }}>
-            {data.vibe || 'Your Vibe'}
+            {data.vibe || 'UNKNOWN'}
           </div>
 
-          {/* Gradient divider — solid colors, html2canvas supports linear-gradient on divs */}
+          {/* Dashed horizontal rule */}
           <div style={{
-            width: '60px',
-            height: '3px',
-            backgroundColor: '#f09433',
-            marginBottom: '24px',
-            borderRadius: '2px',
+            borderTop: '1px dashed rgba(255,255,255,0.2)',
+            marginBottom: '36px',
+            flexShrink: 0,
           }} />
 
-          {/* Mirror moment */}
-          {data.mirrorMoment && (
-            <div style={{
-              fontSize: '18px',
-              fontStyle: 'italic',
-              color: 'rgba(255,255,255,0.62)',
-              lineHeight: 1.55,
-              marginBottom: '52px',
-              fontWeight: 300,
+          {/* Shadow Truth label */}
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#f09433',
+              letterSpacing: '0.18em',
             }}>
-              "{data.mirrorMoment}"
-            </div>
-          )}
+              {'> SHADOW TRUTH:'}
+            </span>
+          </div>
 
-          {/* Themes label */}
+          {/* Shadow Truth text */}
           <div style={{
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            color: 'rgba(255,255,255,0.28)',
-            textTransform: 'uppercase',
-            marginBottom: '16px',
+            fontSize: '21px',
+            fontWeight: 400,
+            color: 'rgba(255,255,255,0.88)',
+            lineHeight: 1.55,
+            fontStyle: 'italic',
+            flex: 1,
           }}>
-            Your Themes
+            "{truth}"
           </div>
 
-          {/* Theme pills */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {themes.map((theme, i) => (
-              <div key={i} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '13px 18px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}>
-                <div style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#f09433',
-                  flexShrink: 0,
-                }} />
-                <span style={{
-                  fontSize: '17px',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.88)',
-                  letterSpacing: '-0.01em',
-                }}>
-                  {theme.title}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom branding — pushed to bottom */}
-          <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: '36px' }}>
-            <div style={{
-              fontSize: '12px',
-              color: 'rgba(240,148,51,0.55)',
-              fontWeight: 500,
-              letterSpacing: '0.06em',
+          {/* Footer */}
+          <div style={{
+            marginTop: 'auto',
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+            paddingTop: '22px',
+            textAlign: 'center',
+          }}>
+            <span style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.28)',
+              letterSpacing: '0.05em',
             }}>
               An experiment by Meet Ahluwalia
-            </div>
+            </span>
           </div>
         </div>
       </div>
@@ -175,7 +183,7 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
 
 CardContent.displayName = 'CardContent';
 
-// Render via portal so html2canvas captures outside any stacking context
+// Render via portal so html2canvas captures outside any parent stacking context
 const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
   (props, ref) => createPortal(<CardContent ref={ref} {...props} />, document.body)
 );

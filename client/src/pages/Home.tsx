@@ -26,6 +26,7 @@ interface AnalysisResult {
   missing: string;
   blindSpots: string;
   mirrorMoment?: string;
+  shadowTruth?: string;
 }
 
 interface PreviewFile {
@@ -43,6 +44,40 @@ const LOADING_MESSAGES = [
   "Uncovering hidden patterns...",
   "Building your profile..."
 ];
+
+const GLITCH_CHARS = '█▓▒░#@&?!X-0123456789';
+
+const GlitchText = ({ text, active }: { text: string; active: boolean }) => {
+  const [displayed, setDisplayed] = useState('');
+
+  useEffect(() => {
+    if (!active) { setDisplayed(''); return; }
+    let frame = 0;
+    const FRAMES = 22;
+    let rafId: number;
+
+    const scramble = (t: string) =>
+      t.split('').map(c => c === ' ' ? ' ' : GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]).join('');
+
+    const tick = () => {
+      frame++;
+      if (frame >= FRAMES) { setDisplayed(text); return; }
+      const resolved = Math.floor(text.length * Math.min(1, (frame / FRAMES) * 1.3));
+      setDisplayed(
+        text.split('').map((char, i) =>
+          char === ' ' ? ' ' : i < resolved ? char : GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
+        ).join('')
+      );
+      rafId = requestAnimationFrame(tick);
+    };
+
+    setDisplayed(scramble(text));
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [text, active]);
+
+  return <>{displayed || (active ? '' : text)}</>;
+};
 
 const FloatingOrb = ({ delay = 0, size = "lg" }: { delay?: number; size?: "sm" | "md" | "lg" }) => {
   const sizeClasses = {
@@ -500,10 +535,11 @@ const slideTransition = {
 const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () => void }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 8;
-  const slideDuration = 10;
+  const getSlideDuration = (slide: number) => slide === 0 ? 5.5 : 10;
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [decryptPhase, setDecryptPhase] = useState(0);
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
@@ -513,26 +549,48 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
     if (currentSlide > 0) setCurrentSlide(c => c - 1);
   };
 
+  // Drive the decryption animation phases on slide 0
+  useEffect(() => {
+    if (currentSlide !== 0) return;
+    setDecryptPhase(0);
+    const timers = [
+      setTimeout(() => setDecryptPhase(1), 400),
+      setTimeout(() => setDecryptPhase(2), 1200),
+      setTimeout(() => setDecryptPhase(3), 2000),
+      setTimeout(() => setDecryptPhase(4), 2900),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [currentSlide]);
+
+  // Auto-advance slide 0 after decryption completes
+  useEffect(() => {
+    if (currentSlide !== 0) return;
+    const t = setTimeout(() => setCurrentSlide(1), 5500);
+    return () => clearTimeout(t);
+  }, [currentSlide]);
+
   const handleSaveImage = async () => {
     if (!shareCardRef.current || isGenerating) return;
     setIsGenerating(true);
     try {
       await document.fonts.ready;
-      const el = shareCardRef.current;
-      // Move into viewport so html2canvas can capture (story view at z-50 covers it)
-      el.style.left = '0px';
-      el.style.top = '0px';
-      // Two rAF calls to ensure the browser has repainted at the new position
-      await new Promise<void>(r => requestAnimationFrame(() => { requestAnimationFrame(() => r()); }));
-      const canvas = await html2canvas(el, {
+      // Use onclone to position the element at (0,0) in the cloned document —
+      // html2canvas can't capture position:fixed at left:-9999px (renders blank).
+      // onclone modifies only the clone, not the live DOM.
+      const canvas = await html2canvas(shareCardRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#0a0a0a',
+        allowTaint: true,
+        backgroundColor: '#070707',
         logging: false,
         width: 540,
         height: 960,
+        onclone: (_doc, el) => {
+          el.style.left = '0px';
+          el.style.top = '0px';
+          el.style.position = 'absolute';
+        },
       });
-      el.style.left = '-9999px';
       canvas.toBlob((blob) => {
         if (!blob) { toast.error('Failed to generate image.'); return; }
         const url = URL.createObjectURL(blob);
@@ -580,7 +638,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
       <ShareCard ref={shareCardRef} data={data} />
       <div className="relative w-full h-full md:max-w-[420px] md:h-[85vh] md:max-h-[820px] md:rounded-[2.5rem] overflow-hidden bg-black md:border border-zinc-800/50 shadow-2xl md:shadow-pink-500/10">
         
-        <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={slideDuration} />
+        <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={getSlideDuration(currentSlide)} />
         <StoryHeader onClose={onRestart} />
 
         <div className="absolute inset-0 z-30 flex">
@@ -598,35 +656,90 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-0"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center z-10"
+              className="absolute inset-0 z-10 flex flex-col justify-center p-8"
+              style={{ backgroundColor: '#000', fontFamily: "'Space Mono', 'Courier New', Courier, monospace" }}
             >
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                className="mb-8 relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] rounded-full blur-2xl opacity-50 animate-pulse" />
-                <div className="relative w-28 h-28 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center">
-                  <Instagram className="w-14 h-14 text-white" />
-                </div>
-              </motion.div>
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-4xl font-bold text-white mb-4 leading-tight"
-              >
-                Your Algorithmic<br/>Identity
-              </motion.h1>
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-lg text-white/70"
-              >
-                A deep dive into your digital self
-              </motion.p>
+              {/* CRT scanlines */}
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px)',
+              }} />
+
+              <div className="relative z-10 space-y-4">
+                {/* Header */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-[11px] tracking-[0.2em] mb-6"
+                  style={{ color: '#f09433' }}
+                >
+                  INST-ALGO-PROFILER v2.4.1 [CLASSIFIED]
+                </motion.div>
+
+                {/* Line 1 */}
+                {decryptPhase >= 1 && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-white/55">
+                    {'> ACCESSING BEHAVIORAL_PATTERNS.enc'}
+                    {decryptPhase === 1
+                      ? <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }}> █</motion.span>
+                      : <span style={{ color: '#4ade80' }}> ✓</span>}
+                  </motion.div>
+                )}
+
+                {/* Line 2 */}
+                {decryptPhase >= 2 && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-white/55">
+                    {'> DECRYPTING IDENTITY_SIGNATURE.enc'}
+                    {decryptPhase === 2
+                      ? <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }}> █</motion.span>
+                      : <span style={{ color: '#4ade80' }}> ✓</span>}
+                  </motion.div>
+                )}
+
+                {/* Line 3 */}
+                {decryptPhase >= 3 && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-white/55">
+                    {'> CLASSIFYING ALGORITHMIC_PERSONA.dat'}
+                    {decryptPhase === 3
+                      ? <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }}> █</motion.span>
+                      : <span style={{ color: '#4ade80' }}> ✓</span>}
+                  </motion.div>
+                )}
+
+                {/* Vibe slam-in with glitch */}
+                {decryptPhase >= 4 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className="mt-8 space-y-3"
+                  >
+                    <div className="text-[10px] tracking-[0.22em] text-white/35">IDENTITY CLASSIFIED:</div>
+                    <motion.div
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: [0, 1, 0.55, 1, 0.8, 1], x: [-8, 4, -4, 2, -1, 0] }}
+                      transition={{ duration: 0.55, times: [0, 0.12, 0.28, 0.5, 0.75, 1] }}
+                      className="text-4xl font-bold text-white leading-tight"
+                      style={{ textTransform: 'uppercase', letterSpacing: '-0.01em' }}
+                    >
+                      <GlitchText text={(data.vibe || 'UNKNOWN').toUpperCase()} active={decryptPhase === 4} />
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {/* Tap hint */}
+                {decryptPhase >= 4 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2 }}
+                    className="text-[11px] text-white/22 mt-2 tracking-widest"
+                  >
+                    {'> tap anywhere to continue_'}
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -811,44 +924,53 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col items-center justify-between pt-20 pb-6 px-5 z-40"
             >
-              {/* Portrait card preview — mini version of the share card PNG */}
+              {/* Portrait card preview — terminal aesthetic */}
               <div className="flex-1 flex items-center justify-center">
                 <motion.div
                   initial={{ y: 20, opacity: 0, scale: 0.95 }}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-                  className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/70"
-                  style={{ width: '190px', height: '338px', backgroundColor: '#0a0a0a', flexShrink: 0 }}
+                  className="relative overflow-hidden shadow-2xl shadow-black/80"
+                  style={{
+                    width: '190px', height: '338px',
+                    backgroundColor: '#070707',
+                    fontFamily: "'Space Mono', 'Courier New', monospace",
+                    flexShrink: 0,
+                    borderRadius: '6px',
+                  }}
                 >
-                  {/* Blobs */}
-                  <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-purple-500/40 blur-2xl pointer-events-none" />
-                  <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-orange-500/30 blur-2xl pointer-events-none" />
+                  {/* Scanlines */}
+                  <div style={{
+                    position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
+                    background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)',
+                  }} />
 
-                  {/* Card content */}
-                  <div className="relative z-10 flex flex-col h-full p-4">
-                    <p className="text-[7px] text-white/40 mb-1.5 leading-tight">my algorithm thinks i am a —</p>
-                    <h2
-                      className="font-black text-white leading-none mb-3"
-                      style={{ fontSize: '22px', letterSpacing: '-0.02em', wordBreak: 'break-word' }}
-                    >
-                      {data.vibe || 'Your Vibe'}
-                    </h2>
-                    <div className="w-6 h-0.5 bg-[#f09433] rounded-full mb-2.5" />
-                    {data.mirrorMoment && (
-                      <p className="text-[7.5px] italic text-white/60 leading-relaxed mb-3">
-                        "{data.mirrorMoment}"
-                      </p>
-                    )}
-                    <p className="text-[6px] uppercase tracking-[0.15em] text-white/30 mb-2">Your Themes</p>
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      {(data.topThemes || []).slice(0, 3).map((theme, i) => (
-                        <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-2 py-1.5 border border-white/8">
-                          <div className="w-1 h-1 rounded-full bg-[#f09433] flex-shrink-0" />
-                          <span className="text-[9px] font-semibold text-white/85 leading-tight">{theme.title}</span>
-                        </div>
-                      ))}
+                  {/* Classified bar */}
+                  <div style={{ backgroundColor: '#f09433', padding: '4px 10px', position: 'relative', zIndex: 20, display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '5px', fontWeight: 700, color: '#070707', letterSpacing: '0.1em' }}>■ ALGORITHMIC PROFILE</span>
+                    <span style={{ fontSize: '5px', fontWeight: 700, color: '#070707', letterSpacing: '0.08em' }}>[CLASSIFIED]</span>
+                  </div>
+                  <div style={{ height: '1px', backgroundColor: 'rgba(240,148,51,0.2)', position: 'relative', zIndex: 20 }} />
+
+                  {/* Content */}
+                  <div style={{ padding: '12px', position: 'relative', zIndex: 20, display: 'flex', flexDirection: 'column', height: 'calc(100% - 22px)', boxSizing: 'border-box' }}>
+                    <div style={{ fontSize: '4.5px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1.6, marginBottom: '1px' }}>
+                      MY INSTAGRAM ALGORITHM
                     </div>
-                    <p className="text-[6px] text-orange-400/50 text-center mt-2">An experiment by Meet Ahluwalia</p>
+                    <div style={{ fontSize: '5.5px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                      THINKS I AM A/AN:
+                    </div>
+                    <div style={{ fontSize: '19px', fontWeight: 700, color: '#fff', lineHeight: 1.0, textTransform: 'uppercase', letterSpacing: '-0.01em', wordBreak: 'break-word', marginBottom: '10px' }}>
+                      {(data.vibe || 'UNKNOWN').toUpperCase()}
+                    </div>
+                    <div style={{ borderTop: '1px dashed rgba(255,255,255,0.15)', marginBottom: '8px' }} />
+                    <div style={{ fontSize: '5px', color: '#f09433', letterSpacing: '0.15em', marginBottom: '5px' }}>{'> SHADOW TRUTH:'}</div>
+                    <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, fontStyle: 'italic', flex: 1, overflow: 'hidden' }}>
+                      "{data.shadowTruth || data.mirrorMoment || '...'}"
+                    </div>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '5px', textAlign: 'center', marginTop: 'auto' }}>
+                      <span style={{ fontSize: '4.5px', color: 'rgba(255,255,255,0.25)' }}>An experiment by Meet Ahluwalia</span>
+                    </div>
                   </div>
                 </motion.div>
               </div>

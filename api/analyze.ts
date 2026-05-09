@@ -29,6 +29,9 @@ Say something true and uncomfortable. Name the pattern this person probably has 
 6. THE MIRROR MOMENT
 One sentence. The single most accurate thing you can say about this person based purely on what their feed reveals. No metaphors. No setup. Just the observation.
 
+7. SHADOW TRUTH
+One sentence only. A specific, behaviorally grounded observation that this person has probably not said to themselves — but would immediately recognise as true the moment they read it. Root it in a concrete pattern visible in the feed: what they keep consuming, what they keep avoiding, or what the gap between those two things implies about where they actually are right now. Example register: 'You consume beauty obsessively but haven't made anything in months.' Do not explain it. Do not soften it. Do not frame it as advice.
+
 GUIDELINES:
 - Write in second person ("you")
 - Name specific content types, not vibes — "fitness transformation reels from aspirational accounts" not "health-focused content"
@@ -36,6 +39,7 @@ GUIDELINES:
 - Avoid these words and phrases: tapestry, journey, curated, resonate, nuanced, authentic, story, narrative, emotional landscape (as a metaphor), lean into, spaces, chapter, mosaic, rich, deeply
 - Shorter sentences over long poetic ones
 - If you are uncertain about something, do not say it
+- shadowTruth must name a specific behavior or avoidance, not a vague character trait
 
 Return your response as a JSON object with this exact structure:
 {
@@ -61,7 +65,8 @@ Return your response as a JSON object with this exact structure:
   "emotionalLandscape": "string (4-5 sentences about emotional landscape)",
   "missing": "string (2-3 sentences about what's absent)",
   "blindSpots": "string (4-5 sentences of insightful hard truths)",
-  "mirrorMoment": "string (one memorable sentence)"
+  "mirrorMoment": "string (one memorable sentence)",
+  "shadowTruth": "string (one sentence, behaviorally specific, uncomfortably accurate, no softening)"
 }`;
 
 function readBody(req: IncomingMessage): Promise<string> {
