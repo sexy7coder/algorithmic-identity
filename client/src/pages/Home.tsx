@@ -501,6 +501,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
   const slideDuration = 10;
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
@@ -520,28 +521,23 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
         useCORS: true,
         backgroundColor: '#0a0a0a',
         logging: false,
+        width: 540,
+        height: 960,
       });
-      await new Promise<void>((resolve, reject) => {
-        canvas.toBlob(async (blob) => {
-          if (!blob) { reject(new Error('Failed to generate image')); return; }
-          const file = new File([blob], 'my-algorithmic-identity.png', { type: 'image/png' });
-          if (navigator.canShare?.({ files: [file] })) {
-            try {
-              await navigator.share({ files: [file], title: 'My Algorithmic Identity' });
-            } catch {
-              // user cancelled share — still resolve
-            }
-          } else {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'my-algorithmic-identity.png';
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-          resolve();
-        }, 'image/png');
-      });
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.href = url;
+        a.download = 'algorithmic-identity.png';
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 'image/png');
     } catch (err) {
       console.error('Image generation failed:', err);
     } finally {
@@ -550,19 +546,25 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
   };
 
   const handleInviteFriend = async () => {
+    const siteUrl = 'https://algorithmic-identity.vercel.app';
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Explore Wrapped',
-          text: 'Discover what Instagram\'s algorithm thinks about you! Try Explore Wrapped:',
-          url: window.location.origin
+          title: 'My Algorithmic Identity',
+          text: 'Discover what Instagram\'s algorithm thinks you are.',
+          url: siteUrl,
         });
-      } catch (err) {
-        console.log('Share cancelled');
+      } catch {
+        // user cancelled
       }
     } else {
-      navigator.clipboard.writeText(window.location.origin);
-      alert('Link copied to clipboard!');
+      try {
+        await navigator.clipboard.writeText(siteUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // clipboard unavailable — silent fail
+      }
     }
   };
 
@@ -848,7 +850,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                 </div>
                 
                 <div className="relative z-10 pt-3 mt-3 border-t border-white/10">
-                  <div className="text-[10px] font-mono text-white/30 text-center">explorewrapped.app</div>
+                  <div className="text-[10px] font-mono text-white/30 text-center">algorithmic-identity.vercel.app</div>
                 </div>
               </motion.div>
 
@@ -873,8 +875,11 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   onClick={handleInviteFriend}
                   data-testid="button-invite-friend"
                 >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Invite a friend to try
+                  {copied ? (
+                    '✓ Link copied!'
+                  ) : (
+                    <><Share2 className="w-4 h-4 mr-2" />Invite a friend</>
+                  )}
                 </Button>
               </motion.div>
             </motion.div>

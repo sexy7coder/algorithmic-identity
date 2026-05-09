@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ThemeItem {
   title: string;
@@ -17,7 +18,7 @@ interface AnalysisResult {
   mirrorMoment?: string;
 }
 
-const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
+const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
   ({ data }, ref) => {
     const themes = (data.topThemes || []).slice(0, 3);
 
@@ -27,35 +28,37 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
         style={{
           position: 'fixed',
           left: '-9999px',
-          top: '-9999px',
+          top: '0px',
           width: '540px',
           height: '960px',
           backgroundColor: '#0a0a0a',
-          fontFamily: "'Outfit', sans-serif",
+          fontFamily: "'Outfit', 'Inter', sans-serif",
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          padding: '60px 52px 52px',
+          padding: '64px 52px 56px',
           boxSizing: 'border-box',
         }}
       >
-        {/* Background blobs — radial gradients only, no filter:blur (unsupported in html2canvas) */}
+        {/* Pink blob — top right */}
         <div style={{
-          position: 'absolute', top: 0, right: 0,
-          width: '420px', height: '520px',
-          background: 'radial-gradient(ellipse at top right, rgba(188,24,136,0.38) 0%, transparent 62%)',
+          position: 'absolute', top: '-60px', right: '-80px',
+          width: '480px', height: '480px',
+          background: 'radial-gradient(ellipse at center, rgba(188,24,136,0.45) 0%, rgba(188,24,136,0.1) 45%, transparent 70%)',
           pointerEvents: 'none',
         }} />
+        {/* Orange blob — bottom left */}
         <div style={{
-          position: 'absolute', bottom: 0, left: 0,
-          width: '380px', height: '420px',
-          background: 'radial-gradient(ellipse at bottom left, rgba(240,148,51,0.28) 0%, transparent 62%)',
+          position: 'absolute', bottom: '-40px', left: '-60px',
+          width: '400px', height: '400px',
+          background: 'radial-gradient(ellipse at center, rgba(240,148,51,0.35) 0%, rgba(240,148,51,0.08) 45%, transparent 70%)',
           pointerEvents: 'none',
         }} />
+        {/* Subtle red mid-blob */}
         <div style={{
-          position: 'absolute', bottom: '200px', right: '-80px',
-          width: '300px', height: '300px',
-          background: 'radial-gradient(ellipse at center, rgba(220,39,67,0.18) 0%, transparent 65%)',
+          position: 'absolute', bottom: '220px', right: '-40px',
+          width: '280px', height: '280px',
+          background: 'radial-gradient(ellipse at center, rgba(220,39,67,0.2) 0%, transparent 65%)',
           pointerEvents: 'none',
         }} />
 
@@ -66,22 +69,22 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
           <div style={{
             fontSize: '13px',
             fontWeight: 400,
-            color: 'rgba(255,255,255,0.4)',
-            letterSpacing: '0.01em',
-            lineHeight: 1.6,
-            marginBottom: '18px',
+            color: 'rgba(255,255,255,0.38)',
+            letterSpacing: '0.02em',
+            lineHeight: 1.5,
+            marginBottom: '20px',
           }}>
             my algorithm thinks i am a —
           </div>
 
-          {/* Vibe */}
+          {/* Vibe — solid orange, html2canvas doesn't support gradient text */}
           <div style={{
-            fontSize: '62px',
+            fontSize: '68px',
             fontWeight: 800,
             lineHeight: 1.0,
-            color: '#e8824a',
-            marginBottom: '30px',
-            letterSpacing: '-0.025em',
+            color: '#f09433',
+            marginBottom: '28px',
+            letterSpacing: '-0.03em',
             wordBreak: 'break-word',
           }}>
             {data.vibe || 'Your Vibe'}
@@ -90,13 +93,12 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
           {/* Mirror moment */}
           {data.mirrorMoment && (
             <div style={{
-              fontSize: '16px',
+              fontSize: '17px',
               fontStyle: 'italic',
-              color: 'rgba(255,255,255,0.68)',
+              color: 'rgba(255,255,255,0.65)',
               lineHeight: 1.6,
               marginBottom: '40px',
               fontWeight: 300,
-              maxWidth: '420px',
             }}>
               "{data.mirrorMoment}"
             </div>
@@ -104,10 +106,10 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
 
           {/* Divider */}
           <div style={{
-            width: '36px',
+            width: '40px',
             height: '2px',
             backgroundColor: '#dc2743',
-            marginBottom: '30px',
+            marginBottom: '28px',
             borderRadius: '2px',
           }} />
 
@@ -115,16 +117,16 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
           <div style={{
             fontSize: '10px',
             fontWeight: 700,
-            letterSpacing: '0.2em',
-            color: 'rgba(255,255,255,0.3)',
+            letterSpacing: '0.22em',
+            color: 'rgba(255,255,255,0.28)',
             textTransform: 'uppercase',
-            marginBottom: '16px',
+            marginBottom: '18px',
           }}>
             Your Themes
           </div>
 
           {/* Theme list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>
             {themes.map((theme, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{
@@ -135,9 +137,9 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
                   flexShrink: 0,
                 }} />
                 <span style={{
-                  fontSize: '17px',
+                  fontSize: '18px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.82)',
+                  color: 'rgba(255,255,255,0.85)',
                   letterSpacing: '-0.01em',
                 }}>
                   {theme.title}
@@ -146,39 +148,28 @@ const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
             ))}
           </div>
 
-          {/* Bottom attribution */}
-          <div style={{ textAlign: 'center', paddingTop: '36px' }}>
+          {/* Bottom branding */}
+          <div style={{ textAlign: 'center', paddingTop: '32px' }}>
             <div style={{
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.22)',
-              fontWeight: 400,
-              letterSpacing: '0.05em',
-              marginBottom: '5px',
+              fontSize: '12px',
+              color: 'rgba(240,148,51,0.5)',
+              fontWeight: 500,
+              letterSpacing: '0.04em',
             }}>
-              an experiment by
-            </div>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.5)',
-              letterSpacing: '0.01em',
-              marginBottom: '3px',
-            }}>
-              Meet Ahluwalia
-            </div>
-            <div style={{
-              fontSize: '11px',
-              color: 'rgba(240,148,51,0.55)',
-              fontWeight: 400,
-              letterSpacing: '0.03em',
-            }}>
-              meetahluwalia.com
+              algorithmic-identity.vercel.app
             </div>
           </div>
         </div>
       </div>
     );
   }
+);
+
+CardContent.displayName = 'CardContent';
+
+// Render via portal so html2canvas captures outside any stacking context
+const ShareCard = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
+  (props, ref) => createPortal(<CardContent ref={ref} {...props} />, document.body)
 );
 
 ShareCard.displayName = 'ShareCard';
