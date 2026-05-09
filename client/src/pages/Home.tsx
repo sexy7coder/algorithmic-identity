@@ -632,7 +632,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-1"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-6 z-10"
+              className="absolute inset-0 flex flex-col justify-start pt-20 px-6 pb-6 z-10 overflow-y-auto"
             >
               <div className="bg-black/50 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 text-center space-y-5 shadow-2xl">
                 <motion.div 
@@ -656,7 +656,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="text-sm leading-relaxed text-white/80 font-light max-h-[200px] overflow-auto"
+                  className="text-sm leading-relaxed text-white/80 font-light"
                 >
                   "{data.algorithmicPersona || "Loading..."}"
                 </motion.p>
@@ -668,10 +668,10 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-2"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-5 z-10 overflow-auto"
+              className="absolute inset-0 flex flex-col justify-start pt-20 px-5 pb-5 z-10 overflow-y-auto"
             >
               <h2 className="text-xl font-bold text-white mb-4">Visible Themes</h2>
-              <div className="space-y-3 overflow-auto max-h-[70vh]">
+              <div className="space-y-3">
                 {(data.topThemes || []).slice(0, 3).map((theme, i) => {
                   const content = getThemeContent(theme);
                   return (
@@ -703,7 +703,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-3"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-5 z-10"
+              className="absolute inset-0 flex flex-col justify-start pt-20 px-5 pb-5 z-10 overflow-y-auto"
             >
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -726,7 +726,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-4"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col justify-center p-5 z-10"
+              className="absolute inset-0 flex flex-col justify-start pt-20 px-5 pb-5 z-10 overflow-y-auto"
             >
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -749,13 +749,13 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-5"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
+              className="absolute inset-0 flex flex-col items-center justify-start pt-20 px-5 pb-5 z-10 overflow-y-auto"
             >
-              <motion.div 
+              <motion.div
                 initial={{ rotate: -2, scale: 0.9 }}
                 animate={{ rotate: 1, scale: 1 }}
                 transition={{ type: "spring", stiffness: 200 }}
-                className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-6 rounded-3xl shadow-2xl shadow-black/50 max-h-[70vh] overflow-auto"
+                className="w-full bg-gradient-to-br from-white to-zinc-100 text-zinc-900 p-6 rounded-3xl shadow-2xl shadow-black/50"
               >
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-200">
                   <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
