@@ -7,6 +7,7 @@ import bgTexture from "@assets/generated_images/instagram_stories_gradient_backg
 import html2canvas from "html2canvas";
 import ShareCard from "@/components/ShareCard";
 import { upload } from '@vercel/blob/client';
+import { toast } from 'sonner';
 
 type AppState = "IDLE" | "PREVIEWING" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
@@ -533,7 +534,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
       });
       el.style.left = '-9999px';
       canvas.toBlob((blob) => {
-        if (!blob) return;
+        if (!blob) { toast.error('Failed to generate image.'); return; }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -545,9 +546,11 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         }, 100);
+        toast.success('Image saved!');
       }, 'image/png');
     } catch (err) {
       console.error('Image generation failed:', err);
+      toast.error('Could not generate image. Try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -559,6 +562,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
       await navigator.clipboard.writeText(siteUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast.success('Link copied!');
     } catch {
       window.prompt('Copy this link:', siteUrl);
     }
@@ -805,7 +809,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-7"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-between pt-20 pb-6 px-5 z-10"
+              className="absolute inset-0 flex flex-col items-center justify-between pt-20 pb-6 px-5 z-40"
             >
               {/* Portrait card preview — mini version of the share card PNG */}
               <div className="flex-1 flex items-center justify-center">
