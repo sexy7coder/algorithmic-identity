@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
 import html2canvas from "html2canvas";
 import ShareCard from "@/components/ShareCard";
+import { upload } from '@vercel/blob/client';
 
 type AppState = "IDLE" | "PREVIEWING" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
@@ -926,37 +927,34 @@ export default function Home() {
   const handleAnalyze = useCallback(async () => {
     if (previewFiles.length === 0) return;
 
-    // Guard against Vercel's 4.5 MB hard request body limit
-    const totalBytes = previewFiles.reduce((sum, { file }) => sum + file.size, 0);
-    if (totalBytes > 4 * 1024 * 1024) {
-      setError(`Total upload size is ${(totalBytes / 1024 / 1024).toFixed(1)} MB — the limit is 4 MB. Try uploading fewer or smaller screenshots.`);
-      setAppState("ERROR");
-      return;
-    }
-
     setAppState("ANALYZING");
 
     try {
-      const formData = new FormData();
-      previewFiles.forEach(({ file }) => formData.append('images', file));
+      // Upload each image directly to Vercel Blob (bypasses the 4.5 MB function body limit)
+      const uploads = await Promise.all(
+        previewFiles.map(({ file }) =>
+          upload(file.name || 'screenshot.jpg', file, {
+            access: 'public',
+            handleUploadUrl: '/api/blob-upload',
+          })
+        )
+      );
+      const urls = uploads.map((u) => u.url);
 
+      // Send the blob URLs — tiny JSON payload, no size limit issues
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls }),
       });
 
       if (!response.ok) {
-        // Vercel may return plain text (e.g. "Request Entity Too Large") — never assume JSON
         const contentType = response.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Analysis failed.');
         } else {
-          if (response.status === 413) {
-            throw new Error('Images are too large. Please upload fewer or smaller screenshots (4 MB total max).');
-          }
-          const text = await response.text();
-          throw new Error(text.slice(0, 120) || `Request failed (${response.status}).`);
+          throw new Error(`Request failed (${response.status}).`);
         }
       }
 

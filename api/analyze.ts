@@ -1,20 +1,6 @@
-import type { Request, Response } from "express";
-import multer from "multer";
-import OpenAI from "openai";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// Keep individual file limit well under Vercel's 4.5 MB total request cap
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 3 * 1024 * 1024 },
-});
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import OpenAI from 'openai';
+import { del } from '@vercel/blob';
 
 const ANALYSIS_PROMPT = `You are analyzing someone's Instagram explore feed — the content the algorithm actively serves them based on their behaviour. You have been given screenshots of their feed.
 
@@ -78,85 +64,80 @@ Return your response as a JSON object with this exact structure:
   "mirrorMoment": "string (one memorable sentence)"
 }`;
 
-type UploadedFile = {
-  fieldname: string;
-  originalname: string;
-  mimetype: string;
-  buffer: Buffer;
-  size: number;
-};
-
-function runMiddleware(req: Request, res: Response, fn: Function): Promise<void> {
+function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
-    fn(req, res, (result: unknown) => {
-      if (result instanceof Error) reject(result);
-      else resolve();
-    });
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
   });
 }
 
-export default async function handler(req: Request, res: Response) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+function send(res: ServerResponse, status: number, body: object) {
+  const payload = JSON.stringify(body);
+  res.writeHead(status, { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) });
+  res.end(payload);
+}
+
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== 'POST') {
+    return send(res, 405, { error: 'Method not allowed' });
   }
 
   if (!process.env.OPENAI_API_KEY) {
-    console.error("OPENAI_API_KEY is not set");
-    return res.status(500).json({ error: "Server configuration error: OPENAI_API_KEY is not set." });
+    console.error('OPENAI_API_KEY is not set');
+    return send(res, 500, { error: 'Server configuration error: OPENAI_API_KEY is not set.' });
+  }
+
+  // Parse JSON body — Vercel passes the raw stream even without multer
+  let urls: string[];
+  try {
+    const raw = await readBody(req);
+    const body = JSON.parse(raw);
+    urls = body.urls;
+    if (!Array.isArray(urls) || urls.length === 0) {
+      return send(res, 400, { error: 'No image URLs provided.' });
+    }
+  } catch {
+    return send(res, 400, { error: 'Invalid request body — expected JSON { urls: string[] }.' });
   }
 
   try {
-    await runMiddleware(req, res, upload.array("images", 10));
-  } catch (uploadError: any) {
-    console.error("Upload error:", uploadError);
-    if (uploadError.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({ error: "One or more images exceed the 3 MB per-file limit. Please use smaller screenshots." });
-    }
-    return res.status(400).json({ error: "File upload failed.", details: uploadError.message });
-  }
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  try {
-    const files = (req as any).files as UploadedFile[];
-
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No images uploaded." });
-    }
-
-    const imageContents = files.map((file) => ({
-      type: "image_url" as const,
-      image_url: {
-        url: `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-      },
+    // Pass blob URLs directly — OpenAI fetches them from Vercel's CDN, no base64 needed
+    const imageContents = urls.map((url) => ({
+      type: 'image_url' as const,
+      image_url: { url },
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
-          content: "You are an analyst who reads Instagram explore feeds and gives honest, specific, grounded assessments. You do not flatter or generalize. You return valid JSON only.",
+          role: 'system',
+          content: 'You are an analyst who reads Instagram explore feeds and gives honest, specific, grounded assessments. You do not flatter or generalize. You return valid JSON only.',
         },
         {
-          role: "user",
-          content: [
-            { type: "text", text: ANALYSIS_PROMPT },
-            ...imageContents,
-          ],
+          role: 'user',
+          content: [{ type: 'text', text: ANALYSIS_PROMPT }, ...imageContents],
         },
       ],
-      response_format: { type: "json_object" },
+      response_format: { type: 'json_object' },
       max_completion_tokens: 4096,
     });
 
-    const content = response.choices[0].message.content || "{}";
+    const content = response.choices[0].message.content || '{}';
     const analysis = JSON.parse(content);
 
-    return res.json(analysis);
+    // Delete blobs before responding — keeps storage clean, adds <200ms
+    await del(urls).catch((e) => console.error('Blob cleanup failed:', e));
+
+    return send(res, 200, analysis);
   } catch (error: any) {
-    console.error("Analysis error:", error);
-    return res.status(500).json({
-      error: "Failed to analyze images.",
-      details: error.message,
-    });
+    console.error('Analysis error:', error);
+    // Best-effort cleanup on failure too
+    del(urls).catch(() => {});
+    return send(res, 500, { error: 'Failed to analyze images.', details: error.message });
   }
 }
