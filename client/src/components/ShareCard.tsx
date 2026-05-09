@@ -36,29 +36,29 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          padding: '64px 52px 56px',
+          padding: '72px 56px 60px',
           boxSizing: 'border-box',
         }}
       >
-        {/* Pink blob — top right */}
+        {/* Pink/purple blob — top right */}
         <div style={{
-          position: 'absolute', top: '-60px', right: '-80px',
-          width: '480px', height: '480px',
-          background: 'radial-gradient(ellipse at center, rgba(188,24,136,0.45) 0%, rgba(188,24,136,0.1) 45%, transparent 70%)',
+          position: 'absolute', top: '-80px', right: '-100px',
+          width: '520px', height: '520px',
+          background: 'radial-gradient(ellipse at center, rgba(188,24,136,0.55) 0%, rgba(188,24,136,0.18) 38%, transparent 62%)',
           pointerEvents: 'none',
         }} />
         {/* Orange blob — bottom left */}
         <div style={{
-          position: 'absolute', bottom: '-40px', left: '-60px',
-          width: '400px', height: '400px',
-          background: 'radial-gradient(ellipse at center, rgba(240,148,51,0.35) 0%, rgba(240,148,51,0.08) 45%, transparent 70%)',
+          position: 'absolute', bottom: '-60px', left: '-80px',
+          width: '460px', height: '460px',
+          background: 'radial-gradient(ellipse at center, rgba(240,148,51,0.45) 0%, rgba(240,148,51,0.12) 38%, transparent 62%)',
           pointerEvents: 'none',
         }} />
-        {/* Subtle red mid-blob */}
+        {/* Red blob — mid right */}
         <div style={{
-          position: 'absolute', bottom: '220px', right: '-40px',
-          width: '280px', height: '280px',
-          background: 'radial-gradient(ellipse at center, rgba(220,39,67,0.2) 0%, transparent 65%)',
+          position: 'absolute', top: '400px', right: '-60px',
+          width: '300px', height: '300px',
+          background: 'radial-gradient(ellipse at center, rgba(220,39,67,0.28) 0%, transparent 58%)',
           pointerEvents: 'none',
         }} />
 
@@ -69,49 +69,49 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
           <div style={{
             fontSize: '13px',
             fontWeight: 400,
-            color: 'rgba(255,255,255,0.38)',
-            letterSpacing: '0.02em',
-            lineHeight: 1.5,
-            marginBottom: '20px',
+            color: 'rgba(255,255,255,0.35)',
+            letterSpacing: '0.01em',
+            lineHeight: 1.4,
+            marginBottom: '18px',
           }}>
             my algorithm thinks i am a —
           </div>
 
-          {/* Vibe — solid orange, html2canvas doesn't support gradient text */}
+          {/* Vibe — white, bold */}
           <div style={{
-            fontSize: '68px',
+            fontSize: '72px',
             fontWeight: 800,
             lineHeight: 1.0,
-            color: '#f09433',
-            marginBottom: '28px',
+            color: '#ffffff',
+            marginBottom: '32px',
             letterSpacing: '-0.03em',
             wordBreak: 'break-word',
           }}>
             {data.vibe || 'Your Vibe'}
           </div>
 
+          {/* Gradient divider — solid colors, html2canvas supports linear-gradient on divs */}
+          <div style={{
+            width: '60px',
+            height: '3px',
+            backgroundColor: '#f09433',
+            marginBottom: '24px',
+            borderRadius: '2px',
+          }} />
+
           {/* Mirror moment */}
           {data.mirrorMoment && (
             <div style={{
-              fontSize: '17px',
+              fontSize: '18px',
               fontStyle: 'italic',
-              color: 'rgba(255,255,255,0.65)',
-              lineHeight: 1.6,
-              marginBottom: '40px',
+              color: 'rgba(255,255,255,0.62)',
+              lineHeight: 1.55,
+              marginBottom: '52px',
               fontWeight: 300,
             }}>
               "{data.mirrorMoment}"
             </div>
           )}
-
-          {/* Divider */}
-          <div style={{
-            width: '40px',
-            height: '2px',
-            backgroundColor: '#dc2743',
-            marginBottom: '28px',
-            borderRadius: '2px',
-          }} />
 
           {/* Themes label */}
           <div style={{
@@ -120,26 +120,34 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
             letterSpacing: '0.22em',
             color: 'rgba(255,255,255,0.28)',
             textTransform: 'uppercase',
-            marginBottom: '18px',
+            marginBottom: '16px',
           }}>
             Your Themes
           </div>
 
-          {/* Theme list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>
+          {/* Theme pills */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {themes.map((theme, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                padding: '13px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}>
                 <div style={{
-                  width: '5px',
-                  height: '5px',
+                  width: '6px',
+                  height: '6px',
                   borderRadius: '50%',
-                  backgroundColor: '#dc2743',
+                  backgroundColor: '#f09433',
                   flexShrink: 0,
                 }} />
                 <span style={{
-                  fontSize: '18px',
+                  fontSize: '17px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.85)',
+                  color: 'rgba(255,255,255,0.88)',
                   letterSpacing: '-0.01em',
                 }}>
                   {theme.title}
@@ -148,13 +156,13 @@ const CardContent = forwardRef<HTMLDivElement, { data: AnalysisResult }>(
             ))}
           </div>
 
-          {/* Bottom branding */}
-          <div style={{ textAlign: 'center', paddingTop: '32px' }}>
+          {/* Bottom branding — pushed to bottom */}
+          <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: '36px' }}>
             <div style={{
               fontSize: '12px',
-              color: 'rgba(240,148,51,0.5)',
+              color: 'rgba(240,148,51,0.55)',
               fontWeight: 500,
-              letterSpacing: '0.04em',
+              letterSpacing: '0.06em',
             }}>
               algorithmic-identity.vercel.app
             </div>

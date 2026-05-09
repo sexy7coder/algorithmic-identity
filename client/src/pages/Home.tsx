@@ -517,7 +517,13 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
     setIsGenerating(true);
     try {
       await document.fonts.ready;
-      const canvas = await html2canvas(shareCardRef.current, {
+      const el = shareCardRef.current;
+      // Move into viewport so html2canvas can capture (story view at z-50 covers it)
+      el.style.left = '0px';
+      el.style.top = '0px';
+      // Two rAF calls to ensure the browser has repainted at the new position
+      await new Promise<void>(r => requestAnimationFrame(() => { requestAnimationFrame(() => r()); }));
+      const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#0a0a0a',
@@ -525,6 +531,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
         width: 540,
         height: 960,
       });
+      el.style.left = '-9999px';
       canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
@@ -548,24 +555,12 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
 
   const handleInviteFriend = async () => {
     const siteUrl = 'https://algorithmic-identity.vercel.app';
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'My Algorithmic Identity',
-          text: 'Discover what Instagram\'s algorithm thinks you are.',
-          url: siteUrl,
-        });
-      } catch {
-        // user cancelled
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(siteUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        // clipboard unavailable — silent fail
-      }
+    try {
+      await navigator.clipboard.writeText(siteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt('Copy this link:', siteUrl);
     }
   };
 
@@ -810,56 +805,56 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
             <motion.div
               key="slide-7"
               {...slideTransition}
-              className="absolute inset-0 flex flex-col items-center justify-center p-5 z-10"
+              className="absolute inset-0 flex flex-col items-center justify-between pt-20 pb-6 px-5 z-10"
             >
-              <motion.div 
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="w-full max-h-[55vh] bg-gradient-to-br from-zinc-900 to-black rounded-3xl border border-white/10 p-5 flex flex-col relative overflow-hidden shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/20 blur-[50px] rounded-full pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
+              {/* Portrait card preview — mini version of the share card PNG */}
+              <div className="flex-1 flex items-center justify-center">
+                <motion.div
+                  initial={{ y: 20, opacity: 0, scale: 0.95 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+                  className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/70"
+                  style={{ width: '190px', height: '338px', backgroundColor: '#0a0a0a', flexShrink: 0 }}
+                >
+                  {/* Blobs */}
+                  <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-purple-500/40 blur-2xl pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-orange-500/30 blur-2xl pointer-events-none" />
 
-                <div className="relative z-10 flex-1 overflow-auto">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-[2px]">
-                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
-                        <Instagram className="w-4 h-4 text-white" />
-                      </div>
+                  {/* Card content */}
+                  <div className="relative z-10 flex flex-col h-full p-4">
+                    <p className="text-[7px] text-white/40 mb-1.5 leading-tight">my algorithm thinks i am a —</p>
+                    <h2
+                      className="font-black text-white leading-none mb-3"
+                      style={{ fontSize: '22px', letterSpacing: '-0.02em', wordBreak: 'break-word' }}
+                    >
+                      {data.vibe || 'Your Vibe'}
+                    </h2>
+                    <div className="w-6 h-0.5 bg-[#f09433] rounded-full mb-2.5" />
+                    {data.mirrorMoment && (
+                      <p className="text-[7.5px] italic text-white/60 leading-relaxed mb-3">
+                        "{data.mirrorMoment}"
+                      </p>
+                    )}
+                    <p className="text-[6px] uppercase tracking-[0.15em] text-white/30 mb-2">Your Themes</p>
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      {(data.topThemes || []).slice(0, 3).map((theme, i) => (
+                        <div key={i} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-2 py-1.5 border border-white/8">
+                          <div className="w-1 h-1 rounded-full bg-[#f09433] flex-shrink-0" />
+                          <span className="text-[9px] font-semibold text-white/85 leading-tight">{theme.title}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">My Algorithmic Self</div>
-                      <div className="text-white/50 text-[10px] uppercase tracking-wider">Algorithmic Identity</div>
-                    </div>
+                    <p className="text-[6px] text-orange-400/50 text-center mt-2">algorithmic-identity.vercel.app</p>
                   </div>
+                </motion.div>
+              </div>
 
-                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] to-[#dc2743] mb-2">
-                    {data.vibe || "Your Vibe"}
-                  </h2>
-                  
-                  {data.mirrorMoment && (
-                    <p className="text-white/60 text-xs italic mb-4">"{data.mirrorMoment}"</p>
-                  )}
-
-                  <div className="space-y-2">
-                    {(data.topThemes || []).slice(0, 2).map((theme, i) => (
-                      <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/5">
-                        <div className="text-white text-sm font-medium">{theme.title}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="relative z-10 pt-3 mt-3 border-t border-white/10">
-                  <div className="text-[10px] font-mono text-white/30 text-center">algorithmic-identity.vercel.app</div>
-                </div>
-              </motion.div>
-
+              {/* Action buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-5 w-full max-w-xs space-y-3"
+                className="w-full max-w-xs space-y-3"
               >
                 <Button
                   className="w-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-4 shadow-lg shadow-pink-500/20 transition-all disabled:opacity-60"
@@ -876,11 +871,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   onClick={handleInviteFriend}
                   data-testid="button-invite-friend"
                 >
-                  {copied ? (
-                    '✓ Link copied!'
-                  ) : (
-                    <><Share2 className="w-4 h-4 mr-2" />Invite a friend</>
-                  )}
+                  {copied ? '✓ Link copied!' : <><Share2 className="w-4 h-4 mr-2" />Invite a friend</>}
                 </Button>
               </motion.div>
             </motion.div>
