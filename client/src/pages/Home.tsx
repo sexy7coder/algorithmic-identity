@@ -574,21 +574,33 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
     setIsGenerating(true);
     try {
       await document.fonts.ready;
-      // Use onclone to position the element at (0,0) in the cloned document —
-      // html2canvas can't capture position:fixed at left:-9999px (renders blank).
-      // onclone modifies only the clone, not the live DOM.
-      const canvas = await html2canvas(shareCardRef.current, {
+      // onclone: position the element at (0,0) in the cloned document so
+      // html2canvas doesn't try to capture at left:-9999px (blank result).
+      // Canvas pixel data is NOT automatically cloned — copy it explicitly.
+      const sourceEl = shareCardRef.current;
+      const canvas = await html2canvas(sourceEl, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#070707',
+        backgroundColor: '#0a0a0a',
         logging: false,
         width: 540,
         height: 960,
-        onclone: (_doc, el) => {
-          el.style.left = '0px';
-          el.style.top = '0px';
-          el.style.position = 'absolute';
+        onclone: (_doc, clonedEl) => {
+          clonedEl.style.left = '0px';
+          clonedEl.style.top = '0px';
+          clonedEl.style.position = 'absolute';
+          // Copy canvas pixel data (cloneNode doesn't carry canvas content)
+          const srcCanvases = Array.from(sourceEl.querySelectorAll('canvas'));
+          const dstCanvases = Array.from(clonedEl.querySelectorAll('canvas'));
+          srcCanvases.forEach((src, i) => {
+            const dst = dstCanvases[i];
+            if (!dst || src.width === 0 || src.height === 0) return;
+            dst.width = src.width;
+            dst.height = src.height;
+            const ctx = dst.getContext('2d');
+            if (ctx) ctx.drawImage(src, 0, 0);
+          });
         },
       });
       canvas.toBlob((blob) => {
@@ -924,7 +936,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
               {...slideTransition}
               className="absolute inset-0 flex flex-col items-center justify-between pt-20 pb-6 px-5 z-40"
             >
-              {/* Portrait card preview — terminal aesthetic */}
+              {/* Portrait card preview — Instagram-polished aesthetic */}
               <div className="flex-1 flex items-center justify-center">
                 <motion.div
                   initial={{ y: 20, opacity: 0, scale: 0.95 }}
@@ -933,43 +945,73 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                   className="relative overflow-hidden shadow-2xl shadow-black/80"
                   style={{
                     width: '190px', height: '338px',
-                    backgroundColor: '#070707',
-                    fontFamily: "'Space Mono', 'Courier New', monospace",
+                    backgroundColor: '#0a0a0a',
+                    fontFamily: "'Outfit', 'Inter', Arial, sans-serif",
                     flexShrink: 0,
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                   }}
                 >
-                  {/* Scanlines */}
-                  <div style={{
-                    position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
-                    background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)',
-                  }} />
-
                   {/* Classified bar */}
-                  <div style={{ backgroundColor: '#f09433', padding: '4px 10px', position: 'relative', zIndex: 20, display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '5px', fontWeight: 700, color: '#070707', letterSpacing: '0.1em' }}>■ ALGORITHMIC PROFILE</span>
-                    <span style={{ fontSize: '5px', fontWeight: 700, color: '#070707', letterSpacing: '0.08em' }}>[CLASSIFIED]</span>
+                  <div style={{ backgroundColor: '#f09433', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', fontFamily: "'Space Mono', monospace" }}>
+                    <span style={{ fontSize: '4.5px', fontWeight: 700, color: '#0a0a0a', letterSpacing: '0.12em' }}>■ ALGORITHMIC PROFILE</span>
+                    <span style={{ fontSize: '4.5px', fontWeight: 700, color: '#0a0a0a', letterSpacing: '0.1em' }}>[CLASSIFIED]</span>
                   </div>
-                  <div style={{ height: '1px', backgroundColor: 'rgba(240,148,51,0.2)', position: 'relative', zIndex: 20 }} />
+                  {/* Gradient rule */}
+                  <div style={{ height: '1px', background: 'linear-gradient(to right, #f09433, #dc2743, #bc1888)' }} />
 
                   {/* Content */}
-                  <div style={{ padding: '12px', position: 'relative', zIndex: 20, display: 'flex', flexDirection: 'column', height: 'calc(100% - 22px)', boxSizing: 'border-box' }}>
-                    <div style={{ fontSize: '4.5px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1.6, marginBottom: '1px' }}>
+                  <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', height: 'calc(100% - 20px)', boxSizing: 'border-box' }}>
+                    {/* IG logo */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '10px' }}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+                        <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#pg)" strokeWidth="2.5" />
+                        <circle cx="12" cy="12" r="4" stroke="url(#pg)" strokeWidth="2.5" />
+                        <circle cx="17.5" cy="6.5" r="1.2" fill="url(#pg)" />
+                        <defs>
+                          <linearGradient id="pg" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f09433" />
+                            <stop offset="100%" stopColor="#bc1888" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <span style={{ fontSize: '5px', fontWeight: 600, color: 'rgba(255,255,255,0.3)' }}>Instagram</span>
+                    </div>
+                    {/* Label */}
+                    <div style={{ fontSize: '4.5px', color: 'rgba(255,255,255,0.38)', letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1.5, marginBottom: '1px' }}>
                       MY INSTAGRAM ALGORITHM
                     </div>
-                    <div style={{ fontSize: '5.5px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                      THINKS I AM A/AN:
+                    <div style={{ fontSize: '6px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '7px' }}>
+                      THINKS I AM
                     </div>
-                    <div style={{ fontSize: '19px', fontWeight: 700, color: '#fff', lineHeight: 1.0, textTransform: 'uppercase', letterSpacing: '-0.01em', wordBreak: 'break-word', marginBottom: '10px' }}>
+                    {/* Vibe — CSS gradient text (visible in browser, not in PNG capture) */}
+                    <div
+                      className="text-transparent bg-clip-text"
+                      style={{
+                        background: 'linear-gradient(to right, #f09433, #dc2743, #bc1888)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        fontSize: '18px',
+                        fontWeight: 800,
+                        lineHeight: 1.0,
+                        letterSpacing: '-0.01em',
+                        wordBreak: 'break-word',
+                        textTransform: 'uppercase',
+                        marginBottom: '8px',
+                      }}
+                    >
                       {(data.vibe || 'UNKNOWN').toUpperCase()}
                     </div>
-                    <div style={{ borderTop: '1px dashed rgba(255,255,255,0.15)', marginBottom: '8px' }} />
-                    <div style={{ fontSize: '5px', color: '#f09433', letterSpacing: '0.15em', marginBottom: '5px' }}>{'> SHADOW TRUTH:'}</div>
-                    <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, fontStyle: 'italic', flex: 1, overflow: 'hidden' }}>
+                    {/* Accent line */}
+                    <div style={{ width: '20px', height: '2px', background: 'linear-gradient(to right, #f09433, #bc1888)', borderRadius: '1px', marginBottom: '8px' }} />
+                    {/* Shadow truth label */}
+                    <div style={{ fontSize: '4.5px', color: '#f09433', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: '4px' }}>Shadow Truth</div>
+                    {/* Shadow truth text */}
+                    <div style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.82)', lineHeight: 1.5, fontStyle: 'italic', flex: 1, overflow: 'hidden' }}>
                       "{data.shadowTruth || data.mirrorMoment || '...'}"
                     </div>
+                    {/* Footer */}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '5px', textAlign: 'center', marginTop: 'auto' }}>
-                      <span style={{ fontSize: '4.5px', color: 'rgba(255,255,255,0.25)' }}>An experiment by Meet Ahluwalia</span>
+                      <span style={{ fontSize: '4px', color: 'rgba(255,255,255,0.25)' }}>An experiment by Meet Ahluwalia</span>
                     </div>
                   </div>
                 </motion.div>
