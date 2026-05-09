@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build:client",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/analyze.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}

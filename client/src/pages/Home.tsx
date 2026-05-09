@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Share2, Instagram, X, Heart, AlertTriangle, Ghost, Image as ImageIcon, Trash2, ShieldAlert, Sparkles } from "lucide-react";
+import { Upload, Share2, Instagram, X, Heart, AlertTriangle, Ghost, Image as ImageIcon, Trash2, ShieldAlert, Sparkles, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import bgTexture from "@assets/generated_images/instagram_stories_gradient_background.png";
+import html2canvas from "html2canvas";
+import ShareCard from "@/components/ShareCard";
 
 type AppState = "IDLE" | "PREVIEWING" | "ANALYZING" | "READY" | "VIEWING" | "ERROR";
 
@@ -497,6 +499,8 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = 8;
   const slideDuration = 10;
+  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const nextSlide = () => {
     if (currentSlide < totalSlides - 1) setCurrentSlide(c => c + 1);
@@ -504,6 +508,45 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
 
   const prevSlide = () => {
     if (currentSlide > 0) setCurrentSlide(c => c - 1);
+  };
+
+  const handleSaveImage = async () => {
+    if (!shareCardRef.current || isGenerating) return;
+    setIsGenerating(true);
+    try {
+      await document.fonts.ready;
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#0a0a0a',
+        logging: false,
+      });
+      await new Promise<void>((resolve, reject) => {
+        canvas.toBlob(async (blob) => {
+          if (!blob) { reject(new Error('Failed to generate image')); return; }
+          const file = new File([blob], 'my-algorithmic-identity.png', { type: 'image/png' });
+          if (navigator.canShare?.({ files: [file] })) {
+            try {
+              await navigator.share({ files: [file], title: 'My Algorithmic Identity' });
+            } catch {
+              // user cancelled share — still resolve
+            }
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'my-algorithmic-identity.png';
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+          resolve();
+        }, 'image/png');
+      });
+    } catch (err) {
+      console.error('Image generation failed:', err);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleInviteFriend = async () => {
@@ -532,6 +575,7 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col md:items-center md:justify-center font-sans">
+      <ShareCard ref={shareCardRef} data={data} />
       <div className="relative w-full h-full md:max-w-[420px] md:h-[85vh] md:max-h-[820px] md:rounded-[2.5rem] overflow-hidden bg-black md:border border-zinc-800/50 shadow-2xl md:shadow-pink-500/10">
         
         <StoryProgressBar count={totalSlides} activeIndex={currentSlide} duration={slideDuration} />
@@ -808,14 +852,24 @@ const StoryView = ({ data, onRestart }: { data: AnalysisResult; onRestart: () =>
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-5 w-full max-w-xs"
+                className="mt-5 w-full max-w-xs space-y-3"
               >
-                <Button 
-                  className="w-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-4 shadow-lg shadow-pink-500/20 transition-all"
+                <Button
+                  className="w-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white hover:opacity-90 rounded-2xl font-semibold py-4 shadow-lg shadow-pink-500/20 transition-all disabled:opacity-60"
+                  onClick={handleSaveImage}
+                  disabled={isGenerating}
+                  data-testid="button-save-image"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {isGenerating ? 'Generating...' : 'Save as Image'}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full border-white/20 text-white/70 hover:text-white hover:border-white/40 bg-transparent rounded-2xl font-semibold py-4 transition-all"
                   onClick={handleInviteFriend}
                   data-testid="button-invite-friend"
                 >

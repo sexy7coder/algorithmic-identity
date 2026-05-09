@@ -12,48 +12,40 @@ const upload = multer({
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const ANALYSIS_PROMPT = `You are analyzing someone's Instagram explore feed to understand what kind of person the algorithm has constructed them to be. You have been given screenshots of their recent Instagram feed.
+const ANALYSIS_PROMPT = `You are analyzing someone's Instagram explore feed — the content the algorithm actively serves them based on their behaviour. You have been given screenshots of their feed.
 
-Your task is to reveal the algorithmic identity this feed represents. This is about making visible what their attention patterns have told Instagram about them. Be observational and grounded - focus on what you can actually see in the content.
-
-Be specific. Be insightful. Make them feel seen without over-interpreting.
+Your task is to reveal the algorithmic identity this feed represents — what their attention patterns have told Instagram about them. Do not flatter. Do not generalize. Do not reach for impressive-sounding observations. Name things directly based on what you actually see.
 
 ANALYSIS STRUCTURE:
 
 1. ALGORITHMIC IDENTITY (80-100 words)
-Write a narrative about who Instagram believes this person to be based on their feed. Describe their digital self - their interests, aesthetic preferences, and the kind of life their feed suggests they're drawn to. This should read like a character sketch based on observable patterns.
+Describe precisely what kind of person Instagram has profiled this user as. What content categories, formats, and creator types appear repeatedly? What does the overall pattern tell the algorithm about their interests, daily concerns, and habits? Write this as a plain, accurate description. Do not frame it as a flattering portrait — frame it as a profile.
 
 2. VISIBLE THEMES (3 themes)
-For each theme, provide:
-- A punchy title (2-4 words)
-- Surface: What type of content appears (be specific: types of accounts, visual styles, topics)
-- Deeper: What interest or need this content serves
+Identify the three most dominant content categories in the feed. For each:
+- Title: Name the category plainly (2-4 words, no need to be clever)
+- Surface: What specific content keeps appearing — name the actual formats, topics, and account types you can see
+- Deeper: What this pattern of consumption realistically suggests about what the person is working through, wanting, or avoiding right now
 
-3. YOUR EMOTIONAL LANDSCAPE
-Go deeper than surface emotions. What does the cumulative weight of this feed reveal about their inner state? Consider:
-- What are they consistently drawn to, and what does that pattern suggest about what they're seeking in life right now?
-- Is there an underlying theme - are they in a season of change, searching for something, processing something, or building toward something?
-- What emotional frequency does their feed operate on - comfort, ambition, escape, belonging, self-improvement, validation?
-Connect the dots between different content types to paint a picture of their emotional world. (4-5 sentences)
+3. YOUR EMOTIONAL LANDSCAPE (4-5 sentences)
+What does the cumulative consumption pattern suggest about this person's current emotional state? Look at the overall mix, not individual posts. Are they consuming aspirationally — wanting a life they don't yet have — or affirmingly, reinforcing who they already are? Is their feed helping them think, or helping them not think? Be honest about what the pattern implies, even if the implication is unflattering.
 
-4. WHAT'S MISSING
-Based on what IS present, what seems notably absent? What topics or content types is this person NOT engaging with? This reveals their boundaries, preferences, or blind spots. (2-3 sentences)
+4. WHAT'S MISSING (2-3 sentences)
+What types of content are conspicuously absent from this feed? What does this person appear to be avoiding or disengaged from, and what might that absence say about them?
 
-5. HARD TRUTHS
-This is where you hold up a gentle but honest mirror. Go beyond surface observations to reveal something meaningful:
-- What pattern in their feed might they not consciously recognize, but would resonate as true once pointed out?
-- What does the consistency of certain content types reveal about where their attention habitually goes?
-- What might this feed suggest about the gap between who they are and who they're trying to become?
-Make them pause and think "...that's actually true." Be insightful without being harsh. This should feel like a friend who knows them well sharing an observation they needed to hear. (4-5 sentences)
+5. HARD TRUTHS (4-5 sentences)
+Say something true and uncomfortable. Name the pattern this person probably has not articulated to themselves — not something cruel, but something honest that requires them to reckon with their own behaviour. What habit of mind does this feed reflect? What are they consistently choosing not to confront? What does the gap between what they consume and what that consumption actually delivers suggest about where they might be stuck? Do not soften this to be polite. If the observation is real, state it plainly.
 
 6. THE MIRROR MOMENT
-End with a single, memorable sentence that captures their algorithmic identity. Something quotable that encapsulates what the algorithm sees. Think: "Your feed says you're someone who..."
+One sentence. The single most accurate thing you can say about this person based purely on what their feed reveals. No metaphors. No setup. Just the observation.
 
 GUIDELINES:
 - Write in second person ("you")
-- Be SPECIFIC. Name concrete content types, aesthetics, themes you observe.
-- Stay grounded - base insights on what's visible, not psychological speculation
-- Make it feel personal and insightful without over-reaching
+- Name specific content types, not vibes — "fitness transformation reels from aspirational accounts" not "health-focused content"
+- Every claim must connect to something visible in the screenshots
+- Avoid these words and phrases: tapestry, journey, curated, resonate, nuanced, authentic, story, narrative, emotional landscape (as a metaphor), lean into, spaces, chapter, mosaic, rich, deeply
+- Shorter sentences over long poetic ones
+- If you are uncertain about something, do not say it
 
 Return your response as a JSON object with this exact structure:
 {
@@ -108,7 +100,7 @@ export async function registerRoutes(
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that analyzes Instagram screenshots and returns JSON."
+            content: "You are an analyst who reads Instagram explore feeds and gives honest, specific, grounded assessments. You do not flatter or generalize. You return valid JSON only."
           },
           {
             role: "user",

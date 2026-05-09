@@ -1,0 +1,57 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K3:26:08 PM [express] serving on port 5000
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Raw AI Response: {
+  "vibe": "Curious Creative Seeker",
+  "algorithmicPersona": "Instagram sees you as a curious and creatively inclined individual with a taste for both aesthetic appeal and intellectual depth. Your feed suggests a fascination with design, fashion, and self-expression, blended with a reflective exploration of philosophical and existential themes. You appreciate visual storytelling, evident from the eclectic range of art, design inspiration, and aesthetic styling. Simultaneously, your interests in self-help and motivational content point to a desire for personal growth and transformation. The algorithm paints a picture of someone who values both beauty and substance in their digital experience.",
+  "topThemes": [
+    {
+      "title": "Aesthetic Enthusiast",
+      "surface": "Fashion posts, design tips, artistic photography",
+      "deeper": "Fulfills a desire for visual beauty and self-expression"
+    },
+    {
+      "title": "Philosophical Explorer",
+      "surface": "Quotes, introspective thoughts, discussions on existential themes",
+      "deeper": "Serves the quest for deeper meaning and self-awareness"
+    },
+    {
+      "title": "Growth and Inspiration",
+      "surface": "Motivational quotes, career opportunities, self-help content",
+      "deeper": "Satisfies the urge for personal improvement and ambition"
+    }
+  ],
+  "emotionalLandscape": "Your feed is marked by an underlying longing for balance between aesthetics and introspection. You are consistently drawn to content that not only pleases the eye but also stimulates the mind. This suggests you're in a phase of both appreciating beauty and seeking deeper truths about life. Your leanings towards growth-oriented posts communicate a personal journey of enhancement and self-discovery. The emotional frequency resonates as one of contemplation, motivation, and a pursuit of a more authentic self-expression.",
+  "missing": "Notably absent in your feed are themes of casual entertainment or celebrity gossip, highlighting a preference for content that provides more substance and reflection. This indicates a boundary against superficial engagement, focusing instead on topics that contribute to personal growth and understanding.",
+  "blindSpots": "Your habitual gravitation towards existential and aesthetic content may quietly sideline more pragmatic or routine aspects of life. The consistent appearance of motivational and philosophical content suggests a strong desire for transformation, which might overshadow living in the present moment. There's a potential gap between the ideal self you aspire to be and the simplicity of your current reality. Perhaps acknowledging and embracing this disconnect could enrich your understanding of both aspirations and actual experiences.",
+  "mirrorMoment": "Your feed says you're someone who marries beauty with introspection, constantly seeking growth and deeper understanding."
+}
+Parsed AI Analysis Result: {
+  "vibe": "Curious Creative Seeker",
+  "algorithmicPersona": "Instagram sees you as a curious and creatively inclined individual with a taste for both aesthetic appeal and intellectual depth. Your feed suggests a fascination with design, fashion, and self-expression, blended with a reflective exploration of philosophical and existential themes. You appreciate visual storytelling, evident from the eclectic range of art, design inspiration, and aesthetic styling. Simultaneously, your interests in self-help and motivational content point to a desire for personal growth and transformation. The algorithm paints a picture of someone who values both beauty and substance in their digital experience.",
+  "topThemes": [
+    {
+      "title": "Aesthetic Enthusiast",
+      "surface": "Fashion posts, design tips, artistic photography",
+      "deeper": "Fulfills a desire for visual beauty and self-expression"
+    },
+    {
+      "title": "Philosophical Explorer",
+      "surface": "Quotes, introspective thoughts, discussions on existential themes",
+      "deeper": "Serves the quest for deeper meaning and self-awareness"
+    },
+    {
+      "title": "Growth and Inspiration",
+      "surface": "Motivational quotes, career opportunities, self-help content",
+      "deeper": "Satisfies the urge for personal improvement and ambition"
+    }
+  ],
+  "emotionalLandscape": "Your feed is marked by an underlying longing for balance between aesthetics and introspection. You are consistently drawn to content that not only pleases the eye but also stimulates the mind. This suggests you're in a phase of both appreciating beauty and seeking deeper truths about life. Your leanings towards growth-oriented posts communicate a personal journey of enhancement and self-discovery. The emotional frequency resonates as one of contemplation, motivation, and a pursuit of a more authentic self-expression.",
+  "missing": "Notably absent in your feed are themes of casual entertainment or celebrity gossip, highlighting a preference for content that provides more substance and reflection. This indicates a boundary against superficial engagement, focusing instead on topics that contribute to personal growth and understanding.",
+  "blindSpots": "Your habitual gravitation towards existential and aesthetic content may quietly sideline more pragmatic or routine aspects of life. The consistent appearance of motivational and philosophical content suggests a strong desire for transformation, which might overshadow living in the present moment. There's a potential gap between the ideal self you aspire to be and the simplicity of your current reality. Perhaps acknowledging and embracing this disconnect could enrich your understanding of both aspirations and actual experiences.",
+  "mirrorMoment": "Your feed says you're someone who marries beauty with introspection, constantly seeking growth and deeper understanding."
+}
+3:26:35 PM [express] POST /api/analyze 200 in 9759ms :: {"vibe":"Curious Creative Seeker","algorithmicPersona":"Instagram sees you as a curious and creatively inclined individual with a taste for both aesthetic appeal and intellectual depth. Your feed suggests a fascination with design, fashion, and self-expression, blended with a reflective exploration of philosophical and existential themes. You appreciate visual storytelling, evident from the eclectic range of art, design inspiration, and aesthetic styling. Simultaneously, your interests in self-help and motivational content point to a desire for personal growth and transformation. The algorithm paints a picture of someone who values both beauty and substance in their digital experience.","topThemes":[{"title":"Aesthetic Enthusiast","surface":"Fashion posts, design tips, artistic photography","deeper":"Fulfills a desire for visual beauty and self-expression"},{"title":"Philosophical Explorer","surface":"Quotes, introspective thoughts, discussions on existential themes","deeper":"Serves the quest for deeper meaning and self-awareness"},{"title":"Growth and Inspiration","surface":"Motivational quotes, career opportunities, self-help content","deeper":"Satisfies the urge for personal improvement and ambition"}],"emotionalLandscape":"Your feed is marked by an underlying longing for balance between aesthetics and introspection. You are consistently drawn to content that not only pleases the eye but also stimulates the mind. This suggests you're in a phase of both appreciating beauty and seeking deeper truths about life. Your leanings towards growth-oriented posts communicate a personal journey of enhancement and self-discovery. The emotional frequency resonates as one of contemplation, motivation, and a pursuit of a more authentic self-expression.","missing":"Notably absent in your feed are themes of casual entertainment or celebrity gossip, highlighting a preference for content that provides more substance and reflection. This indicates a boundary against superficial engagement, focusing instead on topics that contribute to personal growth and understanding.","blindSpots":"Your habitual gravitation towards existential and aesthetic content may quietly sideline more pragmatic or routine aspects of life. The consistent appearance of motivational and philosophical content suggests a strong desire for transformation, which might overshadow living in the present moment. There's a potential gap between the ideal self you aspire to be and the simplicity of your current reality. Perhaps acknowledging and embracing this disconnect could enrich your understanding of both aspirations and actual experiences.","mirrorMoment":"Your feed says you're someone who marries beauty with introspection, constantly seeking growth and deeper understanding."}
