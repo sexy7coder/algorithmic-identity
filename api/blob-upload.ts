@@ -39,7 +39,8 @@ export default async function handler(req: IncomingMessage & { url?: string }, r
       request: webRequest,
       onBeforeGenerateToken: async (_pathname) => ({
         allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
-        maximumSizeInBytes: 10 * 1024 * 1024, // 10 MB per file — no longer limited by the function body cap
+        maximumSizeInBytes: 10 * 1024 * 1024,
+        addRandomSuffix: true,
       }),
       onUploadCompleted: async () => {
         // Cleanup happens in /api/analyze after OpenAI finishes
